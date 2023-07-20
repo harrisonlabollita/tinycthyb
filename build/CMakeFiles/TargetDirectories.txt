@@ -1,0 +1,3 @@
+/Users/harrisonlabollita/software/fun/tinycthyb/build/CMakeFiles/main.dir
+/Users/harrisonlabollita/software/fun/tinycthyb/build/CMakeFiles/edit_cache.dir
+/Users/harrisonlabollita/software/fun/tinycthyb/build/CMakeFiles/rebuild_cache.dir
