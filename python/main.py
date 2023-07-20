@@ -1,22 +1,21 @@
+
+
 import os
 from copy import deepcopy, copy
 import numpy as np
 from pydlr import kernel
 from scipy.integrate import quad
 
+import matplotlib.pyplot as plt
+
+seed = 1234
+np.random.seed(seed)
+
 getenv = lambda x, default : int(os.getenv(x)) if os.getenv(x) is not None else default
 
 DEBUG = getenv('DEBUG', 0)
 
 class Configuration:
-    #def __new__(cls, t_i, t_f):
-    #    assert len(t_i) == len(t_f)
-    #    obj = super().__new__(cls)
-    #    if len(t_i) == 0:
-    #        obj.t_i, obj.t_f = [], []
-    #    else:
-    #        obj.t_i, obj.t_f = sorted(t_i), sorted(t_f)
-    #    return obj
     def __init__(self, t_i, t_f):
         assert len(t_i) == len(t_f)
         if len(t_i) == 0:
@@ -189,10 +188,11 @@ class Hybridization:
                 s = -1.0
                 t += self.beta
             idx = np.searchsorted(self.times, t)
-            idx = 1 if idx == 0 else idx
+            idx = idx-1 if idx == len(self.times) else idx
             ti, tf = self.times[idx-1], self.times[idx]
             vi, vf = self.values[idx-1], self.values[idx]
             return s * (vi + (t-ti) * (vf-vi) / (tf - ti))
+
         if hasattr(time, '__iter__'): return list(map(call, time))
         else: return call(time)
 
@@ -374,7 +374,7 @@ class GreensFunction:
                               self.data * scalar, 
                               self.sign)
 
-    def __div__(self, scalar):
+    def __truediv__(self, scalar):
         return GreensFunction(self.beta, 
                               self.data / scalar, 
                               self.sign)
@@ -399,7 +399,7 @@ def sample_greens_function(g, c, e):
     nt = len(c)
     for i in range(nt):
         for j in range(nt):
-            accumulate(g, d.t_f[i]-d.t_i[j], M[i,j])
+            accumulate(g, d.t_f[i]-d.t_i[j], M[j,i])
 
 
 def eval_semi_circular_g_tau(times, t, h, beta):
@@ -527,20 +527,41 @@ if __name__ == "__main__":
         assert AntiSegment(1.0, 2.0).len(10.0) == 1.0
         assert AntiSegment(9.5, 0.5).len(10.0) == 1.0
 
+    print("Starting CT-HYB QMC")
     epoch_steps = 10
     warmup_epochs = 1000
-    sampling_epochs = int(1e5)
+    sampling_epochs = int(1e4)
 
     g = GreensFunction(beta=beta, N=nt)
     c = Configuration([], [])
-    print(c)
-    for _ in range(10):
-        c = metropolis_hastings_update(c, e)
-        print(c)
+
+    print(f"Warmup epochs {warmup_epochs} with {epoch_steps} steps.")
+    for epoch in range(warmup_epochs):
+        for step in range(epoch_steps):
+            c = metropolis_hastings_update(c, e)
+
+    print(f"Sampling epochs {sampling_epochs} with {epoch_steps} steps.")
+    for epoch in range(sampling_epochs):
+        for step in range(epoch_steps):
+            c = metropolis_hastings_update(c, e)
+        sample_greens_function(g, c, e)
+
+    print('<sign> = ', g.sign )
+
+    dt = beta / len(g)
+    g  = g / (-g.sign * beta * dt)
+    print('move prob = ', e.move_prop )
+    print('move acc  = ', e.move_acc  )
+
+    dt = beta/nt
+    t = np.linspace(0.5*dt, beta-0.5*dt, nt)
+    plt.figure()
+    plt.plot(t, g.data, ".", label = "G")
+    plt.plot(times, g_ref, "-", label = "G (ref)")
+    times = np.linspace(0, beta, 1001)
+    plt.plot(times, Δ(times), '-', label='Delta (ref)')
+    plt.plot(Δ.times, Δ.values, '.', label='Delta')
+    plt.legend()
+    plt.show()
 
 
-    #print(f"Warmup epochs {warmup_epochs} with {epoch_steps} steps.")
-
-    #for epoch in range(warmup_epochs):
-    #    for step in range(epoch_steps):
-    #        c = metropolis_hastings_update(c, e)
