@@ -33,12 +33,12 @@ class Configuration:
             return Configuration(t_i, t_f)
 
         elif move.type == 'Remove':
-            if move.i_idx > 0:
+            if move.i_idx >= 0 and len(self) > 0:
                 t_i = np.delete(copy(self.t_i), move.i_idx)
                 t_f = np.delete(copy(self.t_f), move.f_idx)
                 return Configuration(t_i, t_f)
             else:
-                return self
+                return self #Configuration(self.t_i, self.t_f)
     
     def __str__(self):
         return f"Configuration({self.t_i}, {self.t_f})"
@@ -220,7 +220,8 @@ class Determinant:
         self.mat = np.zeros((len(self.t_i), len(self.t_f)), dtype=float)
         for (i, ti) in enumerate(self.t_i):
             for (j, tf) in enumerate(self.t_f):
-                self.mat[i,j] = e.Delta(tf-ti)
+                self.mat[j,i] = e.Delta(tf-ti)
+
         self.value = np.linalg.det(self.mat)
 
 
@@ -300,7 +301,7 @@ def new_antisegment_insertion_move(c, e):
 
 def new_removal_move(c, e):
     l = len(c)
-    if l > 0:
+    if l >= 0:
         i_idx = np.random.randint(0,l)
         f_idx = np.random.randint(0,l)
         return RemovalMove(i_idx, f_idx, l)
@@ -384,6 +385,7 @@ def accumulate(g, time, value):
         time += g.beta
 
     idx = int(np.floor(len(g) * time / g.beta))
+    #idx = int(np.ceil((len(g)-1) * time / g.beta))
     g.data[idx] += value
 
 def sample_greens_function(g, c, e):
@@ -398,13 +400,18 @@ def sample_greens_function(g, c, e):
     nt = len(c)
     for i in range(nt):
         for j in range(nt):
-            accumulate(g, d.t_f[i]-d.t_i[j], M[i,j])
+            accumulate(g, d.t_f[i]-d.t_i[j], M[j,i])
 
+
+#def eval_semi_circular_g_tau(tau, t, h, beta):
+#    I = lambda x : (-2 / np.pi / t**2) * kernel(np.array([tau])/beta, 
+#                                              beta*np.array([x]))[0,0]
+#    g, res = quad(I, -t+h, t+h, weight='alg', wvar=(0.5, 0.5))
+#    return g
 
 def eval_semi_circular_g_tau(tau, t, h, beta):
-    I = lambda x : (-2 / np.pi / t**2) * kernel(np.array([tau])/beta, 
-                                              beta*np.array([x]))[0,0]
-    g, res = quad(I, -t+h, t+h) #weight='alg', wvar=(0.5, 0.5))
+    I = lambda x : -(2.0/np.pi)*kernel(np.array([tau])/beta, beta*np.array([x]))[0,0]*np.sqrt(1-x**2)
+    g, res = quad(I, -1, 1)
     return g
 
 eval_semi_circular_g_tau = np.vectorize(eval_semi_circular_g_tau)
@@ -554,11 +561,12 @@ if __name__ == "__main__":
 
     dt = beta/nt
     t = np.linspace(0.5*dt, beta-0.5*dt, nt)
+    #t = np.linspace(0, beta, nt)
     plt.figure()
     plt.plot(t, g.data, ".", label = "G")
     plt.plot(times, g_ref, "-", label = "G (ref)")
-    times = np.linspace(0, beta, 101)
-    plt.plot(times, Δ(times), '-', label='Delta (ref)')
-    plt.plot(Δ.times, Δ.values, '.', label='Delta')
+    #times = np.linspace(0, beta, 101)
+    #plt.plot(times, Δ(times), '-', label='Delta (ref)')
+    #plt.plot(Δ.times, Δ.values, '.', label='Delta')
     plt.legend()
     plt.show()
