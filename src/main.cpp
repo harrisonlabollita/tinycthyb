@@ -14,8 +14,6 @@ struct Configuration {
 
     Configuration(nda::vector<double> i, nda::vector<double> f){
 
-        //static_assert(t_i.shape()[0] == t_f.shape()[0]);
-        
         if (i.shape()[0] == 0) {
             t_i = nda::vector<double>{};
             t_f = nda::vector<double>{};
@@ -25,10 +23,16 @@ struct Configuration {
         t_i = i;
         t_f = f;
     }
+
+    int length(Configuration& config) { return config.t_i.shape()[0]; }
+
+    void print(Configuration& config) {
+        std::cout << "Configuration(" << config.t_i << ", " << config.t_f << ")" << std::endl;
+    }
+
 };
 
 int length(Configuration c) { return c.t_i.shape()[0] };
-
 
 struct Segment {
     double t_i;
@@ -37,33 +41,33 @@ struct Segment {
         t_i = i;
         t_f = f;
     }
+
+    double length(Segment& seg, double beta) {
+        if (seg.t_i < seg.t_f) {
+            return seg.t_f - seg.t_i
+        } else {
+            return beta - seg.t_i + seg.t_f
+        }
+    }
+
+    bool onsegment(Segment& seg, double t) {
+        if (seg.t_i < seg.t_f ) {
+            return (t > seg.t_i) && (t < seg.t_f)
+        } else {
+            return (t < seg.t_f) || (t > seg.t_i)
+        }
+    }
 };
 
-double length(Segment s, double beta){return s.t_i < s.t_f ? s.t_f - s.t_i : beta - s.t_i + s.t_f };
-
-//class SegmentIterator {
- //   private: 
-  //      nda::vector<double>& 
-//}
-
+// TODO : implement SegmentIterator class
 struct SegmentIterator {
     Configuration c;
     SegmentIterator(Configuration config) { c = config };
 };
 
-int length(SegmentIterator s) { return length(s.c) };
 
 SegmentIterator segments(Configuration c) { return SegmentIterator(c) };
 
-// TODO: implement mod
-std::tuple<int, int> indices(SegmentIterator, int idx) {
-    return s.c.t_f[0] > s.c.t_i[0] ? (idx, idx) : (idx, mod(idx, range(length(s.c));
-}
-
-Segment getindex(SegmentIterator s, int idx){
-    auto i_idx, f_idx = indices(s, idx);
-    return Segment(s.c.t_i[i_idx], s.c.t_f[f_idx]);
-}
 
 // Anti-segment utilities
 
@@ -74,11 +78,13 @@ struct AntiSegment {
         t_i = i;
         t_f = f;
     }
+
+    double length(AntiSegment& s, double beta) {
+        return s.t_i < s.t_f ? s.t_f - s.t_i : beta - s.t_i + s.t_f;
+    }
+
 };
 
-double length(AntiSegment s, double beta) {
-    return s.t_i < s.t_f ? s.t_f - s.t_i : beta - s.t_i + s.t_f;
-}
 
 struct AntiSegmentIterator {
     Configuration c;
@@ -89,22 +95,6 @@ struct AntiSegmentIterator {
 
 AntiSegmentIterator antisegments(Configuration c) { return AntiSegmentIterator(c); }
 
-
-bool onsegment(double t, Segment s) {
-    if (s.t_i < s.t_f) {
-        return (t > s.t_i) && (t < s.t_f);
-    } else {
-        return (t < s.t_f) || (t > s.t_i);
-    }
-}
-
-bool onantisegment(double t, AntiSegment s) {
-    if(s.t_i < s.t_f){
-        return (t > s.t_i) && (t < s.t_f);
-    } else {
-        return (t < s.t_f) || (t > s.t_i);
-    }
-}
 
 
 void remove_segment(Configuration &c, int segment_idx) {
