@@ -8,8 +8,8 @@ from scipy.integrate import quad
 
 import matplotlib.pyplot as plt
 
-seed = 1234
-np.random.seed(seed)
+#seed = 1234
+#np.random.seed(seed)
 
 getenv = lambda x, default : int(os.getenv(x)) if os.getenv(x) is not None else default
 
@@ -85,12 +85,11 @@ class SegmentIterator:
     def __iter__(self): return self
 
     def __next__(self):
-        l = len(self.c)-1
+        l = len(self.c)
         i_idx, f_idx = self.indices(self._state)
-        if i_idx <= l:
-            s = Segment(self.c.t_i[i_idx], self.c.t_f[f_idx])
+        if i_idx < l:
             self._state += 1
-            return s
+            return Segment(self.c.t_i[i_idx], self.c.t_f[f_idx])
         else:
             raise StopIteration
 
@@ -173,7 +172,6 @@ def remove_antisegment(c, segment_idx):
     c.t_i = np.delete(c.t_i, i_idx)
     c.t_f = np.delete(c.t_f, f_idx)
 
-
 class Hybridization:
     def __init__(self, times, values, beta):
         self.times = times
@@ -181,13 +179,14 @@ class Hybridization:
         self.beta = beta
 
     def __call__(self, time):
+
         def call(t):
             s = 1.0
             if t < 0.0:
                 s = -1.0
                 t += self.beta
             idx = np.searchsorted(self.times, t)
-            idx = idx-1 if idx == len(self.times) else idx
+            idx = 1 if idx == 0 else idx
             ti, tf = self.times[idx-1], self.times[idx]
             vi, vf = self.values[idx-1], self.values[idx]
             return s * (vi + (t-ti) * (vf-vi) / (tf - ti))
@@ -212,16 +211,16 @@ class Determinant:
 
     def __init__(self, c, e):
 
-        self.t_f = np.copy(c.t_f)
-        self.t_i = np.copy(c.t_i)
+        self.t_f = copy(c.t_f)
+        self.t_i = copy(c.t_i)
 
         if len(self.t_f) > 0 and self.t_f[0] < self.t_i[0]:
             self.t_f = np.roll(self.t_f, -1)
 
         self.mat = np.zeros((len(self.t_i), len(self.t_f)), dtype=float)
-        for itf, tf in enumerate(self.t_f):
-            for iti, ti in enumerate(self.t_i):
-                self.mat[itf,iti] = e.Delta(tf-ti)
+        for (i, ti) in enumerate(self.t_i):
+            for (j, tf) in enumerate(self.t_f):
+                self.mat[i,j] = e.Delta(tf-ti)
         self.value = np.linalg.det(self.mat)
 
 
@@ -279,7 +278,7 @@ def new_segment_insertion_move(c, e):
     else:
         s = onantisegment(t_i, c)
         l = 0.0 if s is None else Segment(t_i, s.t_f).len(e.beta) 
-        t_f = t_i + l * np.random.rand() % e.beta
+        t_f = (t_i + l * np.random.rand()) % e.beta
 
     assert l >= 0 and l <= e.beta
     return InsertMove(t_i, t_f, l)
@@ -293,7 +292,7 @@ def new_antisegment_insertion_move(c, e):
     else:
         s = onsegment(t_i, c)
         l = 0.0 if s is None else AntiSegment(t_i, s.t_f).len(e.beta) 
-        t_f = t_i + l * np.random.rand() % e.beta
+        t_f = (t_i + l * np.random.rand()) % e.beta
 
     assert l >= 0 and l <= e.beta
     return InsertMove(t_f, t_i, l)
@@ -370,19 +369,20 @@ class GreensFunction:
 
     def __mul__(self, scalar):
         return GreensFunction(self.beta, 
-                              self.data * scalar, 
-                              self.sign)
+                              data=self.data * scalar, 
+                              sign=self.sign)
 
     def __truediv__(self, scalar):
         return GreensFunction(self.beta, 
-                              self.data / scalar, 
-                              self.sign)
+                              data=self.data / scalar, 
+                              sign=self.sign)
 
 def accumulate(g, time, value):
 
     if time < 0.0:
         value *= -1
         time += g.beta
+
     idx = int(np.floor(len(g) * time / g.beta))
     g.data[idx] += value
 
@@ -398,13 +398,13 @@ def sample_greens_function(g, c, e):
     nt = len(c)
     for i in range(nt):
         for j in range(nt):
-            accumulate(g, d.t_f[i]-d.t_i[j], M[j,i])
+            accumulate(g, d.t_f[i]-d.t_i[j], M[i,j])
 
 
-def eval_semi_circular_g_tau(times, t, h, beta):
-    I = lambda x : -2 / np.pi / t**2 * kernel(np.array([times])/beta, 
+def eval_semi_circular_g_tau(tau, t, h, beta):
+    I = lambda x : (-2 / np.pi / t**2) * kernel(np.array([tau])/beta, 
                                               beta*np.array([x]))[0,0]
-    g, res = quad(I, -t+h, t+h, weight='alg', wvar=(0.5, 0.5))
+    g, res = quad(I, -t+h, t+h) #weight='alg', wvar=(0.5, 0.5))
     return g
 
 eval_semi_circular_g_tau = np.vectorize(eval_semi_circular_g_tau)
@@ -515,23 +515,23 @@ if __name__ == "__main__":
             remove_antisegment(c_tmp, idx)
             for s in antisegments(c_tmp): print(s)
 
-        c = Configuration([1.0, 2.0], [3.0, 4.0])
+    c = Configuration([1.0, 2.0], [3.0, 4.0])
 
-        print(c)
-        print(is_segment_proper(c))
+    #print(c)
+    #print(is_segment_proper(c))
 
-        assert not is_segment_proper(c)
-        assert Segment(1.0, 2.0).len(10.0) == 1.0
-        assert Segment(9.5, 0.5).len(10.0) == 1.0
-        assert AntiSegment(1.0, 2.0).len(10.0) == 1.0
-        assert AntiSegment(9.5, 0.5).len(10.0) == 1.0
+    assert not is_segment_proper(c)
+    assert Segment(1.0, 2.0).len(10.0) == 1.0
+    assert Segment(9.5, 0.5).len(10.0) == 1.0
+    assert AntiSegment(1.0, 2.0).len(10.0) == 1.0
+    assert AntiSegment(9.5, 0.5).len(10.0) == 1.0
 
     print("Starting CT-HYB QMC")
     epoch_steps = 10
     warmup_epochs = 1000
     sampling_epochs = int(1e4)
 
-    g = GreensFunction(beta=beta, N=nt)
+    g = GreensFunction(beta, N=nt)
     c = Configuration([], [])
 
     print(f"Warmup epochs {warmup_epochs} with {epoch_steps} steps.")
@@ -550,17 +550,15 @@ if __name__ == "__main__":
     dt = beta / len(g)
     g  = g / (-g.sign * beta * dt)
     print('move prob = ', e.move_prop )
-    print('move acc  = ', e.move_acc  )
+    print('move acc  = ', e.move_acc )
 
     dt = beta/nt
     t = np.linspace(0.5*dt, beta-0.5*dt, nt)
     plt.figure()
     plt.plot(t, g.data, ".", label = "G")
     plt.plot(times, g_ref, "-", label = "G (ref)")
-    times = np.linspace(0, beta, 1001)
+    times = np.linspace(0, beta, 101)
     plt.plot(times, Δ(times), '-', label='Delta (ref)')
     plt.plot(Δ.times, Δ.values, '.', label='Delta')
     plt.legend()
     plt.show()
-
-

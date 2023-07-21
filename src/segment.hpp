@@ -100,7 +100,8 @@ std::optional<Segment> onsegment(double t, Configuration& c) {
 }
 
 
-//void remove_segment(Configuration c, segment_idx){
-//    auto [i_idx, f_idx] = segments(*c).indices(segment_idx);
-//    //TODO: need to remove element from nda array
-//}
+void remove_segment(Configuration c, int segment_idx){
+    auto [i_idx, f_idx] = segments(c).indices(segment_idx);
+    c.t_i = deleteat(c.t_i, i_idx);
+    c.t_f = deleteat(c.t_f, f_idx);
+}

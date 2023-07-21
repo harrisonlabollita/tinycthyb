@@ -46,7 +46,7 @@ class AntiSegmentIterator {
 
         AntiSegment getindex(int idx) const {
             auto [f_idx, i_idx] = indices(idx);
-            return Segment(c.t_f[f_idx], c.t_i[i_idx]);
+            return AntiSegment(c.t_f[f_idx], c.t_i[i_idx]);
         }
 
         AntiSegmentIterator begin() { return *this; }
@@ -95,8 +95,8 @@ std::optional<AntiSegment> onantisegment(double t, Configuration& c) {
     return std::nullopt;
 }
 
-
-//void remove_segment(Configuration c, segment_idx){
-//    auto [i_idx, f_idx] = segments(*c).indices(segment_idx);
-//    //TODO: need to remove element from nda array
-//}
+void remove_antisegment(Configuration c, int segment_idx ) {
+    auto [f_idx, i_idx] = antisegments(c).indices(segment_idx);
+    c.t_i = deleteat(c.t_i, i_idx);
+    c.t_f = deleteat(c.t_f, f_idx);
+}

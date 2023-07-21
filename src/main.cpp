@@ -12,10 +12,5 @@ int main(){
     Configuration c = Configuration(nda::vector<double>{1.0, 3.0},
                                     nda::vector<double>{2.0, 4.0}
             );
-    c.print();
-
-    for (Segment s : segments(c) ) {
-        s.print();
-    }
   return 0;
 }
