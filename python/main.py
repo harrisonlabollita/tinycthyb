@@ -76,7 +76,6 @@ class SegmentIterator:
         if self.c.t_f[0] > self.c.t_i[0]:
             return (idx, idx)
         else:
-            # TODO: check?
             return (idx, (idx+1) % len(self.c))
 
     def getindex(self, idx):
