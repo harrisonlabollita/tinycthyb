@@ -5,25 +5,38 @@
 
 class Hybridization {
     private:
+
         nda::vector<double> times;
         nda::vector<double> values;
         double beta;
+
     public:
+
         Hybridization(const nda::vector<double>& times,
                       const nda::vector<double>& values,
                       double beta) : times(times), values(values), beta(beta) {}
 
-        double operator()(double time) const {
-
-            auto call = [this](double t) 
-
-
+        double operator()(double time){
             double s = 1.0;
-            if (time < 0.0)  {
+            if (time < 0.0) {
                 s = -1.0;
                 time += beta;
             }
 
+            auto it = std::lower_bound(times.begin(), times.end(), time); // iterator to element
+            //TODO : not convinced this is correct
+            int idx = std::distance(times.begin(), it);
+            idx = 1 ? idx == 0 : idx;
+            double ti = times[idx-1];
+            double tf = times[idx];
+            double vi = values[idx-1];
+            double vf = values[idx];
+            return s * (vi + (time-ti)*(vf-vi) /(tf-ti));
         }
 
-}
+        nda::vector<double> operator()(nda::vector<double> times){
+            auto out = nda::zeros<double>(times.shape()[0]);
+            for(int i=0; i < times.extent(0); i++) {out(i) = (*this)(times[i]); }
+            return out;
+       }
+};
