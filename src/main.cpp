@@ -5,6 +5,7 @@
 #include "segment.hpp"
 #include "antisegment.hpp"
 #include "hybridization.hpp"
+#include "green.hpp"
 
 int main(){
 
@@ -17,14 +18,12 @@ int main(){
         times(i) = beta * (double)i/(nt-1) ;
     }
 
-    auto g_ref = nda::zeros<double>(nt); 
 
     Configuration c = Configuration(nda::vector<double>{1.0, 3.0},
                                     nda::vector<double>{2.0, 4.0}
             );
 
-    Hybridization Delta = Hybridization(times, g_ref, beta);
-    auto d = Delta(times);
+    GreensFunction g_ref = read_semi_circular_g_tau();
 
   return 0;
 }
