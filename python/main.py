@@ -1,6 +1,4 @@
-
-
-import os
+import os, sys
 from copy import deepcopy, copy
 import numpy as np
 from pydlr import kernel
@@ -313,8 +311,7 @@ def new_segment_removal_move(c, e):
     if len(c) > 0:
         idx = np.random.randint(0, len(c))
         i_idx, f_idx = segments(c).indices(idx)
-
-        s = Segment(c.t_i[i_idx], c.t_i[(idx+1) % len(c)])
+        s = Segment(c.t_i[i_idx], c.t_i[(i_idx+1) % len(c)])
         l = s.len(e.beta)
         return RemovalMove(i_idx, f_idx, l)
     else:
@@ -432,6 +429,7 @@ if __name__ == "__main__":
     g_ref = eval_semi_circular_g_tau(times, t, h, beta)
 
     Δ = Hybridization(times, -0.25*t**2 * g_ref, beta)
+
 
     moves = [ 
                 new_segment_insertion_move,
