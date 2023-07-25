@@ -8,7 +8,7 @@ class GreensFunction {
 
     public:
         double beta;
-        nda::vector<double> data;
+        const nda::vector<double> data;
         double sign;
         int N;
 
