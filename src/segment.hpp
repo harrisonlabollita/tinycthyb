@@ -105,3 +105,18 @@ void remove_segment(Configuration c, int segment_idx){
     c.t_i = deleteat(c.t_i, i_idx);
     c.t_f = deleteat(c.t_f, f_idx);
 }
+
+
+bool is_segment_proper(const Configuration& c) {
+
+    if (c.t_i[0] < c.t_f[0]) {
+        for (int idx=1; idx < c.length(); idx++) {
+            if ( !(c.t_f[idx-1] < c.t_i[idx]) || !(c.t_i[idx] < c.t_f[idx]) ) { return false; }
+        }
+    } else {
+        for (int idx=1; idx < c.length(); idx++) {
+            if ( !(c.t_i[idx-1] < c.t_f[idx]) || !(c.t_f[idx] < c.t_i[idx]) ) { return false; }
+        }
+    }
+    return true;
+}

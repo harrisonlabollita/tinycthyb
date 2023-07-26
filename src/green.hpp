@@ -1,3 +1,5 @@
+#pragma once
+
 #include <nda/nda.hpp>
 #include <fstream>
 #include <string>

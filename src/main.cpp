@@ -6,7 +6,7 @@
 #include "antisegment.hpp"
 #include "hybridization.hpp"
 #include "green.hpp"
-#include "util.hpp"
+#include "solver.hpp"
 
 
 int main(){
@@ -25,9 +25,5 @@ int main(){
     GreensFunction g_ref = read_semi_circular_g_tau();
     Hybridization Delta = Hybridization(times, -0.25*t*t*g_ref.data, beta);
 
-    auto A = nda::vector<double>{1.0, 2.0, 3.0, 4.0, 5.0};
-    std::cout << A << std::endl;
-    auto B = roll(A, -2);
-    std::cout << B << std::endl;
   return 0;
 }
