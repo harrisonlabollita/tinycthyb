@@ -1,14 +1,14 @@
 import numpy as np
 from copy import deepcopy, copy
 
-from .segment import Segment, SegmentIterator,segments, onsegment, remove_segment, is_segment_proper
-from .segment import AntiSegment, AntiSegmentIterator, antisegments, onantisegment, remove_antisegment
+from segment import Segment, SegmentIterator,segments, onsegment, remove_segment, is_segment_proper
+from segment import AntiSegment, AntiSegmentIterator, antisegments, onantisegment, remove_antisegment
 
-from .configuration import Configuration
+from configuration import Configuration
 
-from .green import GreensFunction, eval_semi_circular_g_tau
+from green import GreensFunction, eval_semi_circular_g_tau
 
-from .hybridization import Hybridization
+from hybridization import Hybridization
 
 
 class Expansion:
