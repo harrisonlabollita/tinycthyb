@@ -9,7 +9,6 @@ int randomint(int min, int max) {
 }
 
 // moves
-
 struct InsertMove {
     double t_i;
     double t_f;
@@ -91,4 +90,28 @@ struct Expansion {
         : beta(beta), h(h), Delta(Delta), moves(moves),
           move_prop(nda::zeros<double>(move.shape()[0])), 
           move_acc(nda::zeros<double>(moves.shape()[0])) {}
+};
+
+struct Determinant {
+    private :
+        const Configuration c;
+        const Expansion e;
+        nda::vector<double> t_i;
+        nda::vector<double> t_f;
+    public:
+        nda::matrix<double> mat;
+        double value;
+
+        Determinant( Configuation& config, Expansion& expan){
+            c = config;
+            e = expan;
+            t_i = nda::zeros<double>(c.length());
+            std::copy(std::begin(c.t_i), std::end(c.t_i), std::begin(t_i));
+            t_f = nda::zeros<double>(c.length());
+            std::copy(std::begin(c.t_f), std::end(c.t_f), std::begin(t_f));
+
+            if (len(t_f) > 0 && t_f(0) < t_i(0)) {
+                t_f = 
+            }
+        }
 };
