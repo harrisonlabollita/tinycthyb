@@ -1,10 +1,12 @@
 #pragma once
 
+#include <vector>
 #include <math.h>
 #include <functional>
 #include <nda/nda.hpp>
 #include <nda/linalg/det_and_inverse.hpp>
 
+#include "configuration.hpp"
 #include "segment.hpp"
 #include "antisegment.hpp"
 #include "util.hpp"
@@ -13,14 +15,7 @@ struct Expansion {
     double beta;
     double h;
     Hybridization Delta;
-    //std::vector<Move> moves;
-    //nda::vector<double> move_prop;
-    //nda::vector<double> move_acc;
-
     Expansion(double beta, double h, Hybridization& Delta) : beta(beta), h(h), Delta(Delta) {}
-          //moves(moves),
-          //move_prop(nda::zeros<double>(move.size())), 
-          //move_acc(nda::zeros<double>(moves.size())) {}
 };
 
 struct Determinant {
@@ -67,76 +62,77 @@ double eval(Configuration& c, Expansion& e) {
 }
 
 // moves
-struct InsertMove {
-    double t_i;
-    double t_f;
-    double l;
-    InsertMove(double t_i, double t_f, double l) 
-        : t_i(t_i), t_f(t_f), l(l) {}
+
+
+struct NewSegmentInsertionMove {
+    InsertMove operator()(Configuration& c, Expansion& e) {
+        double l;
+        double t_f;
+        double t_i = e.beta * nda::rand<>();
+        if (c.length() == 0) {
+            t_f = e.beta * nda::rand<>();
+            l   = e.beta;
+        } else {
+            auto s = onantisegment(t_i, c);
+            l = (s) ? Segment(t_i, (*s).t_f).length(e.beta) : 0.0;
+            t_f = fmod( (t_i + l * nda::rand<>() ), e.beta);
+        }
+        return InsertMove(t_i, t_f, l);
+    }
 };
 
-struct RemovalMove {
-    double t_i;
-    double t_f;
-    double l;
-    RemovalMove(double t_i, double t_f, double l) 
-        : t_i(t_i), t_f(t_f), l(l) {}
+
+
+struct NewAntiSegmentInsertionMove {
+    InsertMove operator()(Configuration& c, Expansion& e) {
+        double l;
+        double t_f;
+        double t_i = e.beta * nda::rand<>();
+        if (c.length() == 0) {
+            t_f = e.beta * nda::rand<>();
+            l = e.beta;
+        } else {
+            auto s = onsegment(t_i, c);
+            l = (s) ? AntiSegment(t_i, (*s).t_f).length(e.beta) : 0.0;
+            t_f = fmod((t_i + l * nda::rand<>() ), e.beta);
+        }
+
+        return InsertMove(t_i, t_f, l);
+    }
 };
 
-InsertMove new_segment_insertion_move(Configuration& c, Expansion& e) {
-    double l;
-    double t_f;
-    double t_i = e.beta * nda::rand<>();
-    if (c.length() == 0) {
-        t_f = e.beta * nda::rand<>();
-        l   = e.beta;
-    } else {
-        auto s = onantisegment(t_i, c);
-        l = (s) ? Segment(t_i, (*s).t_f).length(e.beta) : 0.0;
-        t_f = fmod( (t_i + l * nda::rand<>() ), e.beta);
+struct NewSegmentRemoveMove {
+    RemovalMove operator()(Configuration& c, Expansion& e) {
+        if (c.length() > 0) {
+            auto idx = randomint(0, c.length());
+            auto [i_idx, f_idx] = segments(c).indices(idx);
+            auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
+            auto l = s.length(e.beta);
+            return RemovalMove(i_idx, f_idx, l);
+        } else {
+            return RemovalMove(0, 0, 0.0);
+        }
     }
-    return InsertMove(t_i, t_f, l);
-}
+};
 
 
-InsertMove new_antisegment_insertion_move(Configuration& c, Expansion& e) {
-    double l;
-    double t_f;
-    double t_i = e.beta * nda::rand<>();
-    if (c.length() == 0) {
-        t_f = e.beta * nda::rand<>();
-        l = e.beta;
-    } else {
-        auto s = onsegment(t_i, c);
-        l = (s) ? AntiSegment(t_i, (*s).t_f).length(e.beta) : 0.0;
-        t_f = fmod((t_i + l * nda::rand<>() ), e.beta);
+struct NewAntiSegmentRemoveMove {
+    RemovalMove operator()(Configuration& c, Expansion& e) {
+        if (c.length() > 0) {
+            auto idx = randomint(0, c.length());
+            auto [f_idx, i_idx] = antisegments(c).indices(idx);
+            auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
+            auto l = s.length(e.beta);
+            return RemovalMove(i_idx, f_idx, l);
+        } else {
+            return RemovalMove(0, 0, 0.0);
+        }
     }
+};
 
-    return InsertMove(t_i, t_f, l);
-}
 
-RemovalMove new_segment_remove_move(Configuration& c, Expansion& e) {
 
-    if (c.length() > 0) {
-        auto idx = randomint(0, c.length());
-        auto [i_idx, f_idx] = segments(c).indices(idx);
-        auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
-        auto l = s.length(e.beta);
-        return RemovalMove(i_idx, f_idx, l);
-    } else {
-        return RemovalMove(0.0, 0.0, 0.0);
-    }
-}
+using MoveFunc = std::function<Move(Configuration&, Expansion&)>;
 
-RemovalMove new_antisegment_remove_move(Configuration& c, Expansion& e) {
+auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove(), NewAntiSegmentInsertionMove(), NewSegmentRemoveMove(), NewAntiSegmentRemoveMove() };
 
-    if (c.length() > 0) {
-        auto idx = randomint(0, c.length());
-        auto [f_idx, i_idx] = antisegments(c).indices(idx);
-        auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
-        auto l = s.length(e.beta);
-        return RemovalMove(i_idx, f_idx, l);
-    } else {
-        return RemovalMove(0.0, 0.0, 0.0);
-    }
-}
