@@ -93,7 +93,7 @@ std::optional<AntiSegment> onantisegment(double t, Configuration& c) {
     return std::nullopt;
 }
 
-void remove_antisegment(Configuration c, int segment_idx ) {
+void remove_antisegment(Configuration& c, int segment_idx ) {
     auto [f_idx, i_idx] = antisegments(c).indices(segment_idx);
     c.t_i = deleteat(c.t_i, i_idx);
     c.t_f = deleteat(c.t_f, f_idx);

@@ -505,10 +505,10 @@ if __name__ == "__main__":
         print(onantisegment(2.5, c))
         print(onantisegment(4.5, c))
 
-           
         print(segments(c).indices(0))
         print(segments(c).indices(1))
         print(segments(c).indices(2))
+        print('here')
 
         for idx in range(len(c)):
             c_tmp = deepcopy(c)
