@@ -78,6 +78,7 @@ struct NewSegmentInsertionMove {
             l = (s) ? Segment(t_i, (*s).t_f).length(e.beta) : 0.0;
             t_f = fmod( (t_i + l * nda::rand<>() ), e.beta);
         }
+        std::cout << t_i << " "<< t_f << " "<< l << std::endl;
         return InsertMove(t_i, t_f, l);
     }
 };
@@ -99,6 +100,7 @@ struct NewAntiSegmentInsertionMove {
             t_f = fmod((t_i + l * nda::rand<>() ), e.beta);
         }
 
+        std::cout << t_i << " "<< t_f << " "<< l << std::endl;
         return InsertMove(t_i, t_f, l);
     }
 };
@@ -112,6 +114,7 @@ struct NewSegmentRemoveMove {
             auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
             auto l = s.length(e.beta);
             return RemovalMove(i_idx, f_idx, l);
+            std::cout << i_idx << " " << f_idx << " " << l << std::endl;
         } else {
             return RemovalMove(0, 0, 0.0);
         }
@@ -124,9 +127,14 @@ struct NewAntiSegmentRemoveMove {
         std::cout << "called 4" << std::endl;
         if (c.length() > 0) {
             auto idx = randomint(0, c.length());
+            std::cout << idx << std::endl;
             auto [f_idx, i_idx] = antisegments(c).indices(idx);
+            std::cout << f_idx<< std::endl;
+            std::cout << i_idx<< std::endl;
             auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
+            s.print();
             auto l = s.length(e.beta);
+            std::cout << l << std::endl;
             return RemovalMove(i_idx, f_idx, l);
         } else {
             return RemovalMove(0, 0, 0.0);
@@ -134,8 +142,8 @@ struct NewAntiSegmentRemoveMove {
     }
 };
 
-
-using MoveFunc = std::function<Move(Configuration&, Expansion&)>;
+using Moves    = std::variant<InsertMove, RemovalMove>;
+using MoveFunc = std::function<Moves(Configuration&, Expansion&)>;
 
 
 class Solver {
@@ -169,25 +177,24 @@ class Solver {
             }
         }
 
-        double propose(Move& move) {
-            std::cout << "called propose" << std::endl;
+        double propose(InsertMove& move) {
             auto cnew = c + move;
-
-            if (move.type == 1) {
-                double R = move.l * e.beta / cnew.length() * ( std::abs(eval(cnew, e) / eval(c, e) ) );
-                return R;
-            } 
-
-            if (move.type == 0) {
-                if (move.l == 0) { return std::numeric_limits<double>::quiet_NaN(); }
-                double R = c.length() / e.beta / move.l * (std::abs(eval(cnew, e) / eval(c, e) ));
-                return R;
-            } 
+            double R = move.l * e.beta / cnew.length() * ( std::abs(eval(cnew, e) / eval(c, e) ) );
+            return R;
         }
 
+        double propose(RemovalMove& move) {
+            if (move.l == 0) { return std::numeric_limits<double>::quiet_NaN(); }
+            auto cnew = c + move;
+            double R = c.length() / e.beta / move.l * (std::abs(eval(cnew, e) / eval(c, e) ));
+            return R;
+        }
 
-        void finalize(Move& move) {
-            std::cout << "called finalize" << std::endl;
+        void finalize(InsertMove& move) {
+            c = c + move;
+        }
+
+        void finalize(RemovalMove& move) {
             c = c + move;
         }
 
@@ -195,14 +202,25 @@ class Solver {
             c.print();
             auto move_idx = randomint(0, moves.size());
             std::cout << move_idx << std::endl; 
-            auto move = moves[move_idx](c, e);
-            std::cout << move.type << std::endl;
-            move_prop[move_idx] += 1;
-            auto R =  propose(move);
-            std::cout << move.type << std::endl;
-            if (R > nda::rand<>()) {
-                finalize(move);
-                move_acc[move_idx] += 1;
+            auto m = moves[move_idx](c, e);
+            if (std::holds_alternative<InsertMove>(m))  {
+                InsertMove move = std::get<InsertMove>(m);
+                move_prop[move_idx] += 1;
+                auto R =  propose(move);
+                std::cout << "R = " << R << std::endl;
+                if (R > nda::rand<>()) {
+                    finalize(move);
+                    move_acc[move_idx] += 1;
+                }
+            } else if (std::holds_alternative<RemovalMove>(m) ) {
+                RemovalMove move = std::get<RemovalMove>(m);
+                move_prop[move_idx] += 1;
+                auto R =  propose(move);
+                std::cout << "R = " << R << std::endl;
+                if (R > nda::rand<>()) {
+                    finalize(move);
+                    move_acc[move_idx] += 1;
+                }
             }
         }
 
