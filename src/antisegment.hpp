@@ -1,4 +1,5 @@
 # pragma once
+
 #include "iostream"
 #include <nda/nda.hpp>
 
@@ -8,10 +9,7 @@ struct AntiSegment {
     double t_i;
     double t_f;
 
-    AntiSegment(double i, double f) {
-        t_i = i;
-        t_f = f;
-    }
+    AntiSegment(double t_i, double t_f) : t_i(t_i), t_f(t_f) {}
 
     double length(const double beta) const {
         if (t_i < t_f) {
