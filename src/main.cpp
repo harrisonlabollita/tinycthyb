@@ -7,6 +7,7 @@
 #include "hybridization.hpp"
 #include "green.hpp"
 #include "solver.hpp"
+#include "util.hpp"
 
 
 int main(){
@@ -131,6 +132,11 @@ int main(){
         for (auto s : antisegments(ctmp)) { s.print(); }
     }
 
+    auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove(), NewAntiSegmentInsertionMove(), NewSegmentRemoveMove(), NewAntiSegmentRemoveMove() };
+
+    c = Configuration(nda::zeros<double>(1), nda::zeros<double>(1));
+    auto S = Solver(c, Delta, e, moves, nt) ;
+    S.run();
 
   return 0;
 }

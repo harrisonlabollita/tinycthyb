@@ -1,7 +1,9 @@
 #pragma once
 
+#include <variant>
 #include <vector>
 #include <math.h>
+#include <limits>
 #include <functional>
 #include <nda/nda.hpp>
 #include <nda/linalg/det_and_inverse.hpp>
@@ -62,10 +64,9 @@ double eval(Configuration& c, Expansion& e) {
 }
 
 // moves
-
-
 struct NewSegmentInsertionMove {
     InsertMove operator()(Configuration& c, Expansion& e) {
+        std::cout << "called 1" << std::endl;
         double l;
         double t_f;
         double t_i = e.beta * nda::rand<>();
@@ -85,6 +86,7 @@ struct NewSegmentInsertionMove {
 
 struct NewAntiSegmentInsertionMove {
     InsertMove operator()(Configuration& c, Expansion& e) {
+        std::cout << "called 2" << std::endl;
         double l;
         double t_f;
         double t_i = e.beta * nda::rand<>();
@@ -103,6 +105,7 @@ struct NewAntiSegmentInsertionMove {
 
 struct NewSegmentRemoveMove {
     RemovalMove operator()(Configuration& c, Expansion& e) {
+        std::cout << "called 3" << std::endl;
         if (c.length() > 0) {
             auto idx = randomint(0, c.length());
             auto [i_idx, f_idx] = segments(c).indices(idx);
@@ -118,6 +121,7 @@ struct NewSegmentRemoveMove {
 
 struct NewAntiSegmentRemoveMove {
     RemovalMove operator()(Configuration& c, Expansion& e) {
+        std::cout << "called 4" << std::endl;
         if (c.length() > 0) {
             auto idx = randomint(0, c.length());
             auto [f_idx, i_idx] = antisegments(c).indices(idx);
@@ -131,8 +135,90 @@ struct NewAntiSegmentRemoveMove {
 };
 
 
-
 using MoveFunc = std::function<Move(Configuration&, Expansion&)>;
 
-auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove(), NewAntiSegmentInsertionMove(), NewSegmentRemoveMove(), NewAntiSegmentRemoveMove() };
 
+class Solver {
+    private:
+        Configuration c;
+        Hybridization Delta;
+        Expansion     e;
+        std::vector<MoveFunc> moves;
+    public:
+        GreensFunction g;
+        int nt;
+        nda::vector<double> move_prop;
+        nda::vector<double> move_acc;
+
+        Solver(Configuration& c, Hybridization& Delta, Expansion& e, std::vector<MoveFunc> moves, int nt ) 
+            : c(c), Delta(Delta), e(e), moves(moves), nt(nt), g(e.beta, nt) {
+            move_prop = nda::zeros<double>(moves.size());
+            move_acc  = nda::zeros<double>(moves.size());
+        }
+
+        void sample_greens_function() {
+            auto  d = Determinant(c, e);
+            auto M = inverse(d.mat);
+
+            auto w = trace(c, e) * d.value;
+
+            g.sign += sign(w);
+
+            for (auto i : nda::range(nt)) {
+                for (auto j : nda::range(nt)) { g.accumulate(d.t_f(i)-d.t_i(j), M(j,i));}
+            }
+        }
+
+        double propose(Move& move) {
+            std::cout << "called propose" << std::endl;
+            auto cnew = c + move;
+
+            if (move.type == 1) {
+                double R = move.l * e.beta / cnew.length() * ( std::abs(eval(cnew, e) / eval(c, e) ) );
+                return R;
+            } 
+
+            if (move.type == 0) {
+                if (move.l == 0) { return std::numeric_limits<double>::quiet_NaN(); }
+                double R = c.length() / e.beta / move.l * (std::abs(eval(cnew, e) / eval(c, e) ));
+                return R;
+            } 
+        }
+
+
+        void finalize(Move& move) {
+            std::cout << "called finalize" << std::endl;
+            c = c + move;
+        }
+
+        void metropolis_hastings_update() {
+            c.print();
+            auto move_idx = randomint(0, moves.size());
+            std::cout << move_idx << std::endl; 
+            auto move = moves[move_idx](c, e);
+            std::cout << move.type << std::endl;
+            move_prop[move_idx] += 1;
+            auto R =  propose(move);
+            std::cout << move.type << std::endl;
+            if (R > nda::rand<>()) {
+                finalize(move);
+                move_acc[move_idx] += 1;
+            }
+        }
+
+        void run(int epoch_steps=10, int warmup_epochs=1, long sampling_epochs = 1) {
+
+            std::cout << "Starting CT-HYB QMC" << std::endl;
+
+            std::cout << "Warmup epochs " << warmup_epochs << " with " << epoch_steps << " steps." << std::endl;
+
+            for (auto epoch : nda::range(warmup_epochs)) {
+                for (auto step : nda::range(epoch_steps)) { metropolis_hastings_update(); }
+            }
+
+            for (auto epoch : nda::range(sampling_epochs)) {
+                for (auto step : nda::range(epoch_steps)) { metropolis_hastings_update(); }
+                sample_greens_function();
+            }
+        }
+};

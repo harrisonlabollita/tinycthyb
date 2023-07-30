@@ -3,11 +3,11 @@
 #include <nda/nda.hpp>
 #include <fstream>
 #include <string>
+#include <cmath>
 
 class GreensFunction {
 
     //private:
-
     public:
         double beta;
         const nda::vector<double> data;
@@ -33,6 +33,15 @@ class GreensFunction {
         GreensFunction operator/(double scalar) {
             auto new_data = data / scalar;
             return GreensFunction(beta,  new_data, sign );
+        }
+
+        void accumulate(double time, double value) {
+            if (time < 0.0) {
+                value *= -1;
+                time += beta;
+            }
+            auto idx = static_cast<int>(std::floor(length() * time / beta) );
+            data[idx] += value;
         }
 };
 

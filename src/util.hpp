@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "nda/nda.hpp"
 
 template <typename T>
@@ -38,4 +40,10 @@ int randomint(int min, int max) {
     std::uniform_int_distribution<int> dis(min, max);
     return dis(gen);
 }
+
+template <typename T>
+int sign(T number) {
+    return  std::signbit(number) ? -1 : (number > 0 ? 1 : 0);
+}
+
 
