@@ -4,15 +4,13 @@
 #include <nda/nda.hpp>
 
 class Hybridization {
-    private:
+    public:
         nda::vector<double> times;
         nda::vector<double> values;
         double beta;
 
-    public:
-
-        Hybridization(const nda::vector<double>& times,
-                      const nda::vector<double>& values,
+        Hybridization(nda::vector<double> times,
+                      nda::vector<double> values,
                       double beta) : 
             times(times), values(values), beta(beta) {}
 
@@ -27,6 +25,7 @@ class Hybridization {
             auto it = std::lower_bound(times.begin(), times.end(), time); // iterator to element
             int idx = std::distance(times.begin(), it);
             idx = idx == 0 ? 1 : idx;
+            std::cout << "idx = " << idx << std::endl;
             double ti = times(idx-1);
             double tf = times(idx);
             double vi = values(idx-1);

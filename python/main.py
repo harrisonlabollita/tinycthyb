@@ -1,5 +1,4 @@
 import os, sys
-from copy import deepcopy, copy
 import numpy as np
 from pydlr import kernel
 from scipy.integrate import quad

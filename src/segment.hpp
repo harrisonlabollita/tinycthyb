@@ -13,7 +13,7 @@ struct Segment {
         t_f = f;
     }
 
-    double length(const double beta) const {
+    double length(double beta) {
         if (t_i < t_f) {
             return t_f - t_i;
         } else {
@@ -21,7 +21,7 @@ struct Segment {
         }
     }
 
-    bool onsegment(const double t) const {
+    bool onsegment( double t) {
         if (t_i < t_f ) {
             return (t > t_i) && (t < t_f);
         } else {
@@ -35,11 +35,11 @@ struct Segment {
 
 class SegmentIterator {
     public:
-        SegmentIterator(const Configuration& configuration) : c(configuration), _state(0) {}
+        SegmentIterator(const Configuration& c) : c(c), _state(0) {}
 
         int length() const { return c.length(); }
 
-        std::pair<int, int> indices(int idx) const {
+        std::pair<int, int> indices(int idx)  {
             if (c.t_f[0] > c.t_i[0]) {
                 return std::make_pair(idx, idx);
             } else {
@@ -47,7 +47,7 @@ class SegmentIterator {
             }
         }
 
-        Segment getindex(int idx) const {
+        Segment getindex(int idx) {
             auto [i_idx, f_idx] = indices(idx);
             return Segment(c.t_i[i_idx], c.t_f[f_idx]);
         }

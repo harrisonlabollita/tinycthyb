@@ -9,7 +9,6 @@
 #include "solver.hpp"
 #include "util.hpp"
 
-
 int main(){
 
     double beta = 20;
@@ -20,7 +19,10 @@ int main(){
 
     GreensFunction g_ref = read_semi_circular_g_tau();
     Hybridization Delta = Hybridization(times, -0.25*g_ref.data, beta);
+
     auto e = Expansion(beta, h, Delta);
+
+#if DEBUG
     auto c = Configuration(nda::vector<double>{1.0}, nda::vector<double>{3.0} );
     auto d = Determinant(c, e);
     auto t = trace(c, e);
@@ -131,16 +133,59 @@ int main(){
         remove_antisegment(ctmp, idx);
         for (auto s : antisegments(ctmp)) { s.print(); }
     }
+#endif
 
     auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove(), 
-                                        //NewAntiSegmentInsertionMove(), 
-                                        //NewSegmentRemoveMove(), 
-                                        //NewAntiSegmentRemoveMove() 
+                                        NewAntiSegmentInsertionMove(), 
+                                        NewSegmentRemoveMove(), 
+                                        NewAntiSegmentRemoveMove() 
     };
 
-    c = Configuration(nda::zeros<double>(0), nda::zeros<double>(0));
-    auto S = Solver(c, Delta, e, moves, nt) ;
-    S.run();
+    auto c = Configuration(nda::zeros<double>(0), nda::zeros<double>(0));
+
+    auto S = Solver(Delta, e, moves, nt) ;
+    S.run(c);
+
+//    auto m = S.moves[0](S.c, S.e);
+//    double R;
+//    if (std::holds_alternative<InsertMove>(m))  {
+//        InsertMove move = std::get<InsertMove>(m);
+//        R =  S.propose(move);
+//    } else if (std::holds_alternative<RemovalMove>(m) ) {
+//        RemovalMove move = std::get<RemovalMove>(m);
+//        R =  S.propose(move);
+//    }
+//    std::cout << "R = " << R << std::endl;
+//
+//    m = S.moves[1](S.c, S.e);
+//    if (std::holds_alternative<InsertMove>(m))  {
+//        InsertMove move = std::get<InsertMove>(m);
+//        R =  S.propose(move);
+//    } else if (std::holds_alternative<RemovalMove>(m) ) {
+//        RemovalMove move = std::get<RemovalMove>(m);
+//        R =  S.propose(move);
+//    }
+//    std::cout << "R = " << R << std::endl;
+//
+//    m = S.moves[2](S.c, S.e);
+//    if (std::holds_alternative<InsertMove>(m))  {
+//        InsertMove move = std::get<InsertMove>(m);
+//        R =  S.propose(move);
+//    } else if (std::holds_alternative<RemovalMove>(m) ) {
+//        RemovalMove move = std::get<RemovalMove>(m);
+//        R =  S.propose(move);
+//    }
+//    std::cout << "R = " << R << std::endl;
+//
+//    m = S.moves[3](S.c, S.e);
+//    if (std::holds_alternative<InsertMove>(m))  {
+//        InsertMove move = std::get<InsertMove>(m);
+//        R =  S.propose(move);
+//    } else if (std::holds_alternative<RemovalMove>(m) ) {
+//        RemovalMove move = std::get<RemovalMove>(m);
+//        R =  S.propose(move);
+//    }
+//    std::cout << "R = " << R << std::endl;
 
   return 0;
 }

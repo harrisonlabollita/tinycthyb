@@ -11,7 +11,7 @@ struct AntiSegment {
 
     AntiSegment(double t_i, double t_f) : t_i(t_i), t_f(t_f) {}
 
-    double length(const double beta) const {
+    double length(double beta) {
         if (t_i < t_f) {
             return t_f - t_i;
         } else {
@@ -19,7 +19,7 @@ struct AntiSegment {
         }
     }
 
-    bool onantisegment(const double t) const {
+    bool onantisegment(double t) {
         if (t_i < t_f ) { return (t > t_i) && (t < t_f);
         } else { return (t < t_f) || (t > t_i); }
     }
@@ -30,11 +30,11 @@ struct AntiSegment {
 
 class AntiSegmentIterator {
     public:
-        AntiSegmentIterator(const Configuration& configuration) : c(configuration), _state(0) {}
+        AntiSegmentIterator(const Configuration& c) : c(c), _state(0) {}
 
-        int length() const { return c.length(); }
+        int length() { return c.length(); }
 
-        std::pair<int, int> indices(int idx) const {
+        std::pair<int, int> indices(int idx) {
             if (c.t_f[0] < c.t_i[0]) {
                 return std::make_pair(idx, idx);
             } else {
@@ -42,7 +42,7 @@ class AntiSegmentIterator {
             }
         }
 
-        AntiSegment getindex(int idx) const {
+        AntiSegment getindex(int idx) {
             auto [f_idx, i_idx] = indices(idx);
             return AntiSegment(c.t_f[f_idx], c.t_i[i_idx]);
         }
