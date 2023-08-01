@@ -16,8 +16,9 @@
 struct Expansion {
     double beta;
     double h;
-    Hybridization Delta;
-    Expansion(double beta, double h, Hybridization& Delta) : beta(beta), h(h), Delta(Delta) {}
+    Hybridization& Delta;
+    Expansion(double beta, double h, Hybridization& Delta) 
+        : beta(beta), h(h), Delta(Delta) {}
 };
 
 struct Determinant {
@@ -38,7 +39,7 @@ struct Determinant {
             mat = nda::zeros<double>(t_i.size(), t_f.size());
             for (int i = 0; i < t_i.size(); i++) {
                 for (int f=0; f < t_f.size(); f++) {
-                    std::cout << e.Delta(t_f(f)-t_i(i)) << std::endl;
+                    std::cout << "Delta(tf-ti) = "<< e.Delta(t_f(f)-t_i(i)) << std::endl;
                     mat(f,i) = e.Delta(t_f(f)-t_i(i));
                 }
             }
@@ -114,9 +115,9 @@ struct NewSegmentRemoveMove {
             auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
             auto l = s.length(e.beta);
             return RemovalMove(i_idx, f_idx, l);
-            std::cout << "move data" << i_idx << " " << f_idx << " " << l << std::endl;
+            std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
         } else {
-            std::cout << "move data" << 0 << " " << 0 << " " << 0.0 << std::endl;
+            std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
             return RemovalMove(0, 0, 0.0);
         }
     }
@@ -131,10 +132,10 @@ struct NewAntiSegmentRemoveMove {
             auto [f_idx, i_idx] = antisegments(c).indices(idx);
             auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
             auto l = s.length(e.beta);
-            std::cout << "move data" << i_idx << " " << f_idx << " " << l << std::endl;
+            std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
             return RemovalMove(i_idx, f_idx, l);
         } else {
-            std::cout << "move data" << 0 << " " << 0 << " " << 0.0 << std::endl;
+            std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
             return RemovalMove(0, 0, 0.0);
         }
     }

@@ -21,8 +21,16 @@ int main(){
     Hybridization Delta = Hybridization(times, -0.25*g_ref.data, beta);
 
     auto e = Expansion(beta, h, Delta);
+    
 
 #if DEBUG
+
+    for (auto i=0; i<100; i++) {
+        auto ti = beta*nda::rand<>();
+        auto tf = beta*nda::rand<>();
+        std::cout << e.Delta(tf-ti) << std::endl;
+    }
+
     auto c = Configuration(nda::vector<double>{1.0}, nda::vector<double>{3.0} );
     auto d = Determinant(c, e);
     auto t = trace(c, e);
@@ -143,8 +151,8 @@ int main(){
 
     auto c = Configuration(nda::zeros<double>(0), nda::zeros<double>(0));
 
-    auto S = Solver(Delta, e, moves, nt) ;
-    S.run(c);
+    // auto S = Solver(Delta, e, moves, nt) ;
+    // S.run(c);
 
 //    auto m = S.moves[0](S.c, S.e);
 //    double R;
