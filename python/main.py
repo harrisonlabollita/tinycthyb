@@ -2,6 +2,7 @@ import os, sys
 import numpy as np
 from pydlr import kernel
 from scipy.integrate import quad
+from copy import copy, deepcopy
 
 import matplotlib.pyplot as plt
 
@@ -507,7 +508,6 @@ if __name__ == "__main__":
         print(segments(c).indices(0))
         print(segments(c).indices(1))
         print(segments(c).indices(2))
-        print('here')
 
         for idx in range(len(c)):
             c_tmp = deepcopy(c)
@@ -518,6 +518,8 @@ if __name__ == "__main__":
             c_tmp = deepcopy(c)
             remove_antisegment(c_tmp, idx)
             for s in antisegments(c_tmp): print(s)
+
+    sys.exit(0)
 
     c = Configuration([1.0, 2.0], [3.0, 4.0])
 

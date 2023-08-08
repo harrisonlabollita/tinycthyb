@@ -25,7 +25,6 @@ class Hybridization {
             auto it = std::lower_bound(times.begin(), times.end(), time); // iterator to element
             int idx = std::distance(times.begin(), it);
             idx = idx == 0 ? 1 : idx;
-            std::cout << "idx = " << idx << std::endl;
             double ti = times(idx-1);
             double tf = times(idx);
             double vi = values(idx-1);

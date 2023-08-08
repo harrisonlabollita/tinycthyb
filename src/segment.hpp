@@ -35,7 +35,7 @@ struct Segment {
 
 class SegmentIterator {
     public:
-        SegmentIterator(const Configuration& c) : c(c), _state(0) {}
+        SegmentIterator(Configuration& c) : c(c), _state(0) {}
 
         int length() const { return c.length(); }
 
@@ -86,7 +86,7 @@ class SegmentIterator {
         }
 
     private:
-        const Configuration& c;
+        Configuration& c;
         size_t _state;
 };
 
@@ -111,11 +111,11 @@ bool is_segment_proper(const Configuration& c) {
 
     if (c.t_i[0] < c.t_f[0]) {
         for (int idx=1; idx < c.length(); idx++) {
-            if ( !(c.t_f[idx-1] < c.t_i[idx]) || !(c.t_i[idx] < c.t_f[idx]) ) { return false; }
+            if ( !(c.t_f(idx-1) < c.t_i(idx)) || !(c.t_i(idx) < c.t_f(idx)) ) { return false; }
         }
     } else {
         for (int idx=1; idx < c.length(); idx++) {
-            if ( !(c.t_i[idx-1] < c.t_f[idx]) || !(c.t_f[idx] < c.t_i[idx]) ) { return false; }
+            if ( !(c.t_i(idx-1) < c.t_f(idx)) || !(c.t_f(idx) < c.t_i(idx)) ) { return false; }
         }
     }
     return true;

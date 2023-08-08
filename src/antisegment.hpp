@@ -30,7 +30,7 @@ struct AntiSegment {
 
 class AntiSegmentIterator {
     public:
-        AntiSegmentIterator(const Configuration& c) : c(c), _state(0) {}
+        AntiSegmentIterator(Configuration& c) : c(c), _state(0) {}
 
         int length() { return c.length(); }
 
@@ -80,7 +80,7 @@ class AntiSegmentIterator {
         }
 
     private:
-        const Configuration& c;
+        Configuration& c;
         size_t _state;
 };
 

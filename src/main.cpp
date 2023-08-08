@@ -9,6 +9,8 @@
 #include "solver.hpp"
 #include "util.hpp"
 
+#define DEBUG false
+
 int main(){
 
     double beta = 20;
@@ -21,6 +23,7 @@ int main(){
     Hybridization Delta = Hybridization(times, -0.25*g_ref.data, beta);
 
     auto e = Expansion(beta, h, Delta);
+
     
 
 #if DEBUG
@@ -143,16 +146,14 @@ int main(){
     }
 #endif
 
-    auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove(), 
-                                        NewAntiSegmentInsertionMove(), 
-                                        NewSegmentRemoveMove(), 
-                                        NewAntiSegmentRemoveMove() 
+    auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove,
+                                        NewAntiSegmentInsertionMove,
+                                        NewSegmentRemoveMove, 
+                                        NewAntiSegmentRemoveMove
     };
-
     auto c = Configuration(nda::zeros<double>(0), nda::zeros<double>(0));
-
-    // auto S = Solver(Delta, e, moves, nt) ;
-    // S.run(c);
+    auto S = Solver(Delta, e, moves, nt) ;
+    S.run(c);
 
 //    auto m = S.moves[0](S.c, S.e);
 //    double R;

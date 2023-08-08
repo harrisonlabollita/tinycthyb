@@ -33,13 +33,11 @@ struct Determinant {
             t_f = c.t_f;
 
             if (t_f.size() > 0 && t_f(0) < t_i(0)) {
-                std::cout << "roll is called" << std::endl;
                 t_f = roll(t_f, -1);
             }
             mat = nda::zeros<double>(t_i.size(), t_f.size());
             for (int i = 0; i < t_i.size(); i++) {
                 for (int f=0; f < t_f.size(); f++) {
-                    std::cout << "Delta(tf-ti) = "<< e.Delta(t_f(f)-t_i(i)) << std::endl;
                     mat(f,i) = e.Delta(t_f(f)-t_i(i));
                 }
             }
@@ -52,7 +50,7 @@ struct Determinant {
 double trace(Configuration& c, Expansion& e) {
     if (c.length() == 0) { return 2.0; }
     if (!is_segment_proper(c)) { return 0.0; }
-    double value = (c.t_f(0) < c.t_f(0)) ? -1.0 : +1.0;
+    double value = (c.t_f(0) < c.t_i(0)) ? -1.0 : +1.0;
 
     for (auto s : segments(c)) {
         value *= std::exp(-1*e.h * s.length(e.beta));
@@ -65,81 +63,69 @@ double eval(Configuration& c, Expansion& e) {
 }
 
 // moves
-struct NewSegmentInsertionMove {
-    InsertMove operator()(Configuration& c, Expansion& e) {
-        std::cout << "called 1" << std::endl;
-        double l;
-        double t_f;
-        double t_i = e.beta * nda::rand<>();
-        if (c.length() == 0) {
-            t_f = e.beta * nda::rand<>();
-            l   = e.beta;
-        } else {
-            auto s = onantisegment(t_i, c);
-            l = (s) ? Segment(t_i, (*s).t_f).length(e.beta) : 0.0;
-            t_f = fmod( (t_i + l * nda::rand<>() ), e.beta);
-        }
-        std::cout << "move data = " << t_i << " "<< t_f << " "<< l << std::endl;
-        return InsertMove(t_i, t_f, l);
+InsertMove NewSegmentInsertionMove(Configuration& c, Expansion& e) {
+    double l;
+    double t_f;
+    double t_i = e.beta * nda::rand<>();
+    if (c.length() == 0) {
+        t_f = e.beta * nda::rand<>();
+        l   = e.beta;
+    } else {
+        auto s = onantisegment(t_i, c);
+        l = (s) ? Segment(t_i, (*s).t_f).length(e.beta) : 0.0;
+        t_f = fmod( (t_i + l * nda::rand<>() ), e.beta);
     }
-};
+    return InsertMove(t_i, t_f, l);
+}
 
 
 
-struct NewAntiSegmentInsertionMove {
-    InsertMove operator()(Configuration& c, Expansion& e) {
-        std::cout << "called 2" << std::endl;
-        double l;
-        double t_f;
-        double t_i = e.beta * nda::rand<>();
-        if (c.length() == 0) {
-            t_f = e.beta * nda::rand<>();
-            l = e.beta;
-        } else {
-            auto s = onsegment(t_i, c);
-            l = (s) ? AntiSegment(t_i, (*s).t_f).length(e.beta) : 0.0;
-            t_f = fmod((t_i + l * nda::rand<>() ), e.beta);
-        }
-
-        std::cout << "move data = " << t_i << " "<< t_f << " "<< l << std::endl;
-        return InsertMove(t_i, t_f, l);
+InsertMove NewAntiSegmentInsertionMove(Configuration& c, Expansion& e) {
+    double l;
+    double t_f;
+    double t_i = e.beta * nda::rand<>();
+    if (c.length() == 0) {
+        t_f = e.beta * nda::rand<>();
+        l = e.beta;
+    } else {
+        auto s = onsegment(t_i, c);
+        l = (s) ? AntiSegment(t_i, (*s).t_f).length(e.beta) : 0.0;
+        t_f = fmod((t_i + l * nda::rand<>() ), e.beta);
     }
-};
+    return InsertMove(t_i, t_f, l);
+}
 
-struct NewSegmentRemoveMove {
-    RemovalMove operator()(Configuration& c, Expansion& e) {
-        std::cout << "called 3" << std::endl;
-        if (c.length() > 0) {
-            auto idx = randomint(0, c.length());
-            auto [i_idx, f_idx] = segments(c).indices(idx);
-            auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
-            auto l = s.length(e.beta);
-            return RemovalMove(i_idx, f_idx, l);
-            std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
-        } else {
-            std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
-            return RemovalMove(0, 0, 0.0);
-        }
+RemovalMove NewSegmentRemoveMove(Configuration& c, Expansion& e) {
+    std::cout << "called 3" << std::endl;
+    if (c.length() > 0) {
+        auto idx = randomint(0, c.length()-1);
+        auto [i_idx, f_idx] = segments(c).indices(idx);
+        auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
+        auto l = s.length(e.beta);
+        return RemovalMove(i_idx, f_idx, l);
+        std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
+    } else {
+        std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
+        return RemovalMove(0, 0, 0.0);
     }
-};
+}
 
 
-struct NewAntiSegmentRemoveMove {
-    RemovalMove operator()(Configuration& c, Expansion& e) {
-        std::cout << "called 4" << std::endl;
-        if (c.length() > 0) {
-            auto idx = randomint(0, c.length());
-            auto [f_idx, i_idx] = antisegments(c).indices(idx);
-            auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
-            auto l = s.length(e.beta);
-            std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
-            return RemovalMove(i_idx, f_idx, l);
-        } else {
-            std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
-            return RemovalMove(0, 0, 0.0);
-        }
+RemovalMove NewAntiSegmentRemoveMove(Configuration& c, Expansion& e) {
+    std::cout << "called 4" << std::endl;
+    if (c.length() > 0) {
+        auto idx = randomint(0, c.length()-1);
+        auto [f_idx, i_idx] = antisegments(c).indices(idx);
+        auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
+        s.print();
+        auto l = s.length(e.beta);
+        std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
+        return RemovalMove(i_idx, f_idx, l);
+    } else {
+        std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
+        return RemovalMove(0, 0, 0.0);
     }
-};
+}
 
 using Moves    = std::variant<InsertMove, RemovalMove>;
 using MoveFunc = std::function<Moves(Configuration&, Expansion&)>;
@@ -163,7 +149,6 @@ class Solver {
         }
 
         void sample_greens_function(Configuration& c) {
-            std::cout << "sample green functions" << std::endl;
             auto d = Determinant(c, e);
             auto M = inverse(d.mat);
             auto w = trace(c, e) * d.value;
@@ -201,7 +186,8 @@ class Solver {
 
         Configuration metropolis_hastings_update(Configuration& c) {
             c.print();
-            auto move_idx = randomint(0, moves.size());
+            auto move_idx = randomint(0, moves.size()-1);
+            std::cout << "move idx =" << move_idx << std::endl;
             auto m = moves[move_idx](c, e);
             double R = 0.0;
             if (std::holds_alternative<InsertMove>(m))  {
@@ -211,6 +197,7 @@ class Solver {
                 std::cout << "R = " << R << std::endl;
                 if (R > nda::rand<>()) {
                     c = finalize(c, move);
+                    std::cout << "finalized" << std::endl;
                     move_acc[move_idx] += 1;
                 }
             } else if (std::holds_alternative<RemovalMove>(m) ) {
@@ -220,6 +207,7 @@ class Solver {
                 std::cout << "R = " << R << std::endl;
                 if (!std::isnan(R) && R > nda::rand<>()) {
                     c = finalize(c, move);
+                    std::cout << "finalized" << std::endl;
                     move_acc[move_idx] += 1;
                 }
             }
@@ -229,19 +217,21 @@ class Solver {
 
         void run(Configuration c, int epoch_steps=1, int warmup_epochs=1, long sampling_epochs = 1) {
 
+
             std::cout << "Starting CT-HYB QMC" << std::endl;
 
             std::cout << "Warmup epochs " << warmup_epochs << " with " << epoch_steps << " steps." << std::endl;
 
-            for (auto epoch : nda::range(warmup_epochs)) {
-                for (auto step : nda::range(epoch_steps)) { 
-                    c = metropolis_hastings_update(c); }
+            for (auto epoch=0; epoch<warmup_epochs; epoch++){
+                for (auto step=0; step<epoch_steps; step++){
+                    c = metropolis_hastings_update(c); 
+                }
             }
-
-            for (auto epoch : nda::range(sampling_epochs)) {
-                for (auto step : nda::range(epoch_steps)) { 
-                    c = metropolis_hastings_update(c); }
+           for (auto epoch=0; epoch<warmup_epochs; epoch++){
+             for (auto step=0; step<epoch_steps; step++){
+                 c = metropolis_hastings_update(c); 
+                }
                 sample_greens_function(c);
-            }
+          }
         }
 };

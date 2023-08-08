@@ -40,9 +40,7 @@ class GreensFunction {
                 value *= -1;
                 time += beta;
             }
-            std::cout << "time = " << time << std::endl;
             auto idx = static_cast<int>(std::floor(length() * time / beta) );
-            std::cout  << "idx = " << idx << std::endl;
             data(idx) += value;
         }
 };
