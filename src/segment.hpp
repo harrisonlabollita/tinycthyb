@@ -49,7 +49,7 @@ class SegmentIterator {
 
         Segment getindex(int idx) {
             auto [i_idx, f_idx] = indices(idx);
-            return Segment(c.t_i[i_idx], c.t_f[f_idx]);
+            return Segment(c.t_i(i_idx), c.t_f(f_idx));
         }
 
         SegmentIterator begin() { return *this; }
@@ -72,10 +72,10 @@ class SegmentIterator {
         }
 
         Segment operator*() {
-            int l = length() - 1;
+            int l = length();
             auto [i_idx, f_idx] = indices(_state);
-            if (i_idx  <= l) {
-                return Segment(c.t_i[i_idx], c.t_f[f_idx]);
+            if (i_idx  < l) {
+                return Segment(c.t_i(i_idx), c.t_f(f_idx));
             } else {
                 throw std::out_of_range("SegmentIterator out of range");
             }
@@ -109,12 +109,12 @@ void remove_segment(Configuration& c, int segment_idx){
 
 bool is_segment_proper(const Configuration& c) {
 
-    if (c.t_i[0] < c.t_f[0]) {
-        for (int idx=1; idx < c.length(); idx++) {
+    if (c.t_i(0) < c.t_f(0)) {
+        for (auto idx=1; idx < c.length(); idx++) {
             if ( !(c.t_f(idx-1) < c.t_i(idx)) || !(c.t_i(idx) < c.t_f(idx)) ) { return false; }
         }
     } else {
-        for (int idx=1; idx < c.length(); idx++) {
+        for (auto idx=1; idx < c.length(); idx++) {
             if ( !(c.t_i(idx-1) < c.t_f(idx)) || !(c.t_f(idx) < c.t_i(idx)) ) { return false; }
         }
     }

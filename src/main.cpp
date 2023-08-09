@@ -155,46 +155,9 @@ int main(){
     auto S = Solver(Delta, e, moves, nt) ;
     S.run(c);
 
-//    auto m = S.moves[0](S.c, S.e);
-//    double R;
-//    if (std::holds_alternative<InsertMove>(m))  {
-//        InsertMove move = std::get<InsertMove>(m);
-//        R =  S.propose(move);
-//    } else if (std::holds_alternative<RemovalMove>(m) ) {
-//        RemovalMove move = std::get<RemovalMove>(m);
-//        R =  S.propose(move);
-//    }
-//    std::cout << "R = " << R << std::endl;
-//
-//    m = S.moves[1](S.c, S.e);
-//    if (std::holds_alternative<InsertMove>(m))  {
-//        InsertMove move = std::get<InsertMove>(m);
-//        R =  S.propose(move);
-//    } else if (std::holds_alternative<RemovalMove>(m) ) {
-//        RemovalMove move = std::get<RemovalMove>(m);
-//        R =  S.propose(move);
-//    }
-//    std::cout << "R = " << R << std::endl;
-//
-//    m = S.moves[2](S.c, S.e);
-//    if (std::holds_alternative<InsertMove>(m))  {
-//        InsertMove move = std::get<InsertMove>(m);
-//        R =  S.propose(move);
-//    } else if (std::holds_alternative<RemovalMove>(m) ) {
-//        RemovalMove move = std::get<RemovalMove>(m);
-//        R =  S.propose(move);
-//    }
-//    std::cout << "R = " << R << std::endl;
-//
-//    m = S.moves[3](S.c, S.e);
-//    if (std::holds_alternative<InsertMove>(m))  {
-//        InsertMove move = std::get<InsertMove>(m);
-//        R =  S.propose(move);
-//    } else if (std::holds_alternative<RemovalMove>(m) ) {
-//        RemovalMove move = std::get<RemovalMove>(m);
-//        R =  S.propose(move);
-//    }
-//    std::cout << "R = " << R << std::endl;
+    double dt = beta / nt;
+    for (auto val : S.g.data ) { std::cout << val/(-S.g.sign*beta*dt) << std::endl; }
+
 
   return 0;
 }

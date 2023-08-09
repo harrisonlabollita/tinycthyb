@@ -95,33 +95,26 @@ InsertMove NewAntiSegmentInsertionMove(Configuration& c, Expansion& e) {
 }
 
 RemovalMove NewSegmentRemoveMove(Configuration& c, Expansion& e) {
-    std::cout << "called 3" << std::endl;
     if (c.length() > 0) {
         auto idx = randomint(0, c.length()-1);
         auto [i_idx, f_idx] = segments(c).indices(idx);
         auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
         auto l = s.length(e.beta);
         return RemovalMove(i_idx, f_idx, l);
-        std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
     } else {
-        std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
         return RemovalMove(0, 0, 0.0);
     }
 }
 
 
 RemovalMove NewAntiSegmentRemoveMove(Configuration& c, Expansion& e) {
-    std::cout << "called 4" << std::endl;
     if (c.length() > 0) {
         auto idx = randomint(0, c.length()-1);
         auto [f_idx, i_idx] = antisegments(c).indices(idx);
         auto s = AntiSegment(c.t_f(f_idx), c.t_f( (f_idx+1) % c.length()) );
-        s.print();
         auto l = s.length(e.beta);
-        std::cout << "move data = " << i_idx << " " << f_idx << " " << l << std::endl;
         return RemovalMove(i_idx, f_idx, l);
     } else {
-        std::cout << "move data = " << 0 << " " << 0 << " " << 0.0 << std::endl;
         return RemovalMove(0, 0, 0.0);
     }
 }
@@ -149,26 +142,16 @@ class Solver {
 
         void sample_greens_function(Configuration& c) {
             auto d = Determinant(c, e);
-            std::cout << "calc d = "<< d.t_i << std::endl;
-            std::cout << "calc d = "<< d.t_f << std::endl;
             auto M = inverse(d.mat);
-            std::cout << "calc M" << M << std::endl;
             auto w = trace(c, e) * d.value;
-            std::cout << "calc w " << w << std::endl;
             g.sign += sign(w);
-            std::cout << "calc sign" << std::endl;
 
             for (auto i = 0; i < c.length(); i++) {
                 for (auto j = 0; j < c.length(); j++) {
-                    std::cout << "d.t_i(" << i << ") = " << d.t_i(i) << std::endl;
-                    std::cout << "d.t_f(" << j << ") = " << d.t_f(j) << std::endl;
-                    auto diff = d.t_i(i) - d.t_f(j);
-                    std::cout << "diff = " << diff << std::endl;
-                    g.accumulate(diff, M(j,i));
+                    g.accumulate(d.t_f(i) - d.t_i(j), M(j,i));
                 }
             }
 
-            std::cout << "accumulater" << std::endl;
         }
 
         double propose(Configuration& c, InsertMove& move) {
@@ -195,38 +178,30 @@ class Solver {
         }
 
         Configuration metropolis_hastings_update(Configuration& c) {
-            c.print();
             auto move_idx = randomint(0, moves.size()-1);
-            std::cout << "move idx =" << move_idx << std::endl;
             auto m = moves[move_idx](c, e);
             double R = 0.0;
             if (std::holds_alternative<InsertMove>(m))  {
                 InsertMove move = std::get<InsertMove>(m);
                 move_prop(move_idx) += 1;
                 R =  propose(c, move);
-                std::cout << "R = " << R << std::endl;
                 if (R > nda::rand<>()) {
                     c = finalize(c, move);
-                    std::cout << "finalized" << std::endl;
                     move_acc(move_idx) += 1;
-                    std::cout << "finalized" << std::endl;
                 }
             } else if (std::holds_alternative<RemovalMove>(m) ) {
                 RemovalMove move = std::get<RemovalMove>(m);
                 move_prop(move_idx) += 1;
                 R =  propose(c, move);
-                std::cout << "R = " << R << std::endl;
                 if (!std::isnan(R) && R > nda::rand<>()) {
                     c = finalize(c, move);
-                    std::cout << "finalized" << std::endl;
                     move_acc(move_idx) += 1;
-                    std::cout << "finalized" << std::endl;
                 }
             }
             return c;
         }
 
-        void run(Configuration c, int epoch_steps=2, int warmup_epochs=1, long sampling_epochs = 1) {
+        void run(Configuration c, int epoch_steps=10, int warmup_epochs=1000, long sampling_epochs = 100000) {
 
 
             std::cout << "Starting CT-HYB QMC" << std::endl;
@@ -238,9 +213,10 @@ class Solver {
                     c = metropolis_hastings_update(c); 
                 }
             }
-            std::cout << "finished warmup" << std::endl;
 
-           for (auto epoch=0; epoch<warmup_epochs; epoch++){
+            std::cout << "Sampling epochs " << sampling_epochs << " with " << epoch_steps << " steps." << std::endl;
+
+           for (auto epoch=0; epoch<sampling_epochs; epoch++){
              for (auto step=0; step<epoch_steps; step++){
                  c = metropolis_hastings_update(c); 
                 }

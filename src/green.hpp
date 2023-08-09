@@ -7,7 +7,6 @@
 
 class GreensFunction {
 
-    //private:
     public:
         double beta;
         const nda::vector<double> data;

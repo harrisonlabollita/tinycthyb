@@ -41,7 +41,7 @@ struct Configuration {
     nda::vector<double> t_f;
 
     Configuration(nda::vector<double> i, nda::vector<double> f){
-        if (i.shape()[0] == 0) {
+        if (i.size() == 0) {
             t_i = nda::vector<double>{};
             t_f = nda::vector<double>{};
         }

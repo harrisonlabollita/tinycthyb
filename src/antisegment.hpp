@@ -67,9 +67,9 @@ class AntiSegmentIterator {
         }
 
         AntiSegment operator*() {
-            int l = length() - 1;
+            int l = length();
             auto [f_idx, i_idx] = indices(_state);
-            if (f_idx  <= l) { return AntiSegment(c.t_f[f_idx], c.t_i[i_idx]);
+            if (f_idx  < l) { return AntiSegment(c.t_f(f_idx), c.t_i(i_idx));
             } else { 
                 throw std::out_of_range("AntiSegmentIterator out of range");
             }
