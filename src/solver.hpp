@@ -41,7 +41,6 @@ struct Determinant {
                     mat(f,i) = e.Delta(t_f(f)-t_i(i));
                 }
             }
-
             value = determinant(mat);
         }
 };
@@ -150,15 +149,26 @@ class Solver {
 
         void sample_greens_function(Configuration& c) {
             auto d = Determinant(c, e);
+            std::cout << "calc d = "<< d.t_i << std::endl;
+            std::cout << "calc d = "<< d.t_f << std::endl;
             auto M = inverse(d.mat);
+            std::cout << "calc M" << M << std::endl;
             auto w = trace(c, e) * d.value;
+            std::cout << "calc w " << w << std::endl;
             g.sign += sign(w);
+            std::cout << "calc sign" << std::endl;
 
-            for (auto i : nda::range(nt)) {
-                for (auto j : nda::range(nt)) { 
-                    g.accumulate(d.t_i(i)-d.t_f(j), M(j,i));
+            for (auto i = 0; i < c.length(); i++) {
+                for (auto j = 0; j < c.length(); j++) {
+                    std::cout << "d.t_i(" << i << ") = " << d.t_i(i) << std::endl;
+                    std::cout << "d.t_f(" << j << ") = " << d.t_f(j) << std::endl;
+                    auto diff = d.t_i(i) - d.t_f(j);
+                    std::cout << "diff = " << diff << std::endl;
+                    g.accumulate(diff, M(j,i));
                 }
             }
+
+            std::cout << "accumulater" << std::endl;
         }
 
         double propose(Configuration& c, InsertMove& move) {
@@ -192,30 +202,31 @@ class Solver {
             double R = 0.0;
             if (std::holds_alternative<InsertMove>(m))  {
                 InsertMove move = std::get<InsertMove>(m);
-                move_prop[move_idx] += 1;
+                move_prop(move_idx) += 1;
                 R =  propose(c, move);
                 std::cout << "R = " << R << std::endl;
                 if (R > nda::rand<>()) {
                     c = finalize(c, move);
                     std::cout << "finalized" << std::endl;
-                    move_acc[move_idx] += 1;
+                    move_acc(move_idx) += 1;
+                    std::cout << "finalized" << std::endl;
                 }
             } else if (std::holds_alternative<RemovalMove>(m) ) {
                 RemovalMove move = std::get<RemovalMove>(m);
-                move_prop[move_idx] += 1;
+                move_prop(move_idx) += 1;
                 R =  propose(c, move);
                 std::cout << "R = " << R << std::endl;
                 if (!std::isnan(R) && R > nda::rand<>()) {
                     c = finalize(c, move);
                     std::cout << "finalized" << std::endl;
-                    move_acc[move_idx] += 1;
+                    move_acc(move_idx) += 1;
+                    std::cout << "finalized" << std::endl;
                 }
             }
-
             return c;
         }
 
-        void run(Configuration c, int epoch_steps=1, int warmup_epochs=1, long sampling_epochs = 1) {
+        void run(Configuration c, int epoch_steps=2, int warmup_epochs=1, long sampling_epochs = 1) {
 
 
             std::cout << "Starting CT-HYB QMC" << std::endl;
@@ -227,6 +238,8 @@ class Solver {
                     c = metropolis_hastings_update(c); 
                 }
             }
+            std::cout << "finished warmup" << std::endl;
+
            for (auto epoch=0; epoch<warmup_epochs; epoch++){
              for (auto step=0; step<epoch_steps; step++){
                  c = metropolis_hastings_update(c); 
