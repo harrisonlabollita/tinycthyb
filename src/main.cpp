@@ -146,14 +146,16 @@ int main(){
     }
 #endif
 
-    auto moves = std::vector<MoveFunc>{ NewSegmentInsertionMove,
+    auto moves = std::vector<MoveFunc>{ 
+                                        NewSegmentInsertionMove,
                                         NewAntiSegmentInsertionMove,
                                         NewSegmentRemoveMove, 
                                         NewAntiSegmentRemoveMove
-    };
-    auto c = Configuration(nda::zeros<double>(0), nda::zeros<double>(0));
+                                    };
+    auto c = Configuration(nda::vector<double>{}, nda::vector<double>{});
     auto S = Solver(Delta, e, moves, nt) ;
     S.run(c);
+    std::cout << "g.sign = " << S.g.sign << std::endl;
 
     double dt = beta / nt;
     for (auto val : S.g.data ) { std::cout << val/(-S.g.sign*beta*dt) << std::endl; }

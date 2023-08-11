@@ -42,8 +42,4 @@ int randomint(int min, int max) {
 }
 
 template <typename T>
-int sign(T number) {
-    return  std::signbit(number) ? -1 : (number > 0 ? 1 : 0);
-}
-
-
+int sign(T number) { return  std::signbit(number) ? -1 : (number > 0 ? 1 : 0); }

@@ -519,7 +519,6 @@ if __name__ == "__main__":
             remove_antisegment(c_tmp, idx)
             for s in antisegments(c_tmp): print(s)
 
-    sys.exit(0)
 
     c = Configuration([1.0, 2.0], [3.0, 4.0])
 
@@ -535,7 +534,7 @@ if __name__ == "__main__":
     print("Starting CT-HYB QMC")
     epoch_steps = 10
     warmup_epochs = 1000
-    sampling_epochs = int(1e4)
+    sampling_epochs = int(1e3)
 
     g = GreensFunction(beta, N=nt)
     c = Configuration([], [])
@@ -555,17 +554,17 @@ if __name__ == "__main__":
 
     dt = beta / len(g)
     g  = g / (-g.sign * beta * dt)
-    print('move prob = ', e.move_prop )
-    print('move acc  = ', e.move_acc )
-
-    dt = beta/nt
-    t = np.linspace(0.5*dt, beta-0.5*dt, nt)
-    #t = np.linspace(0, beta, nt)
-    plt.figure()
-    plt.plot(t, g.data, ".", label = "G")
-    plt.plot(times, g_ref, "-", label = "G (ref)")
-    #times = np.linspace(0, beta, 101)
-    #plt.plot(times, Δ(times), '-', label='Delta (ref)')
-    #plt.plot(Δ.times, Δ.values, '.', label='Delta')
-    plt.legend()
-    plt.show()
+    #print('move prob = ', e.move_prop )
+    #print('move acc  = ', e.move_acc )
+#
+#    dt = beta/nt
+#    t = np.linspace(0.5*dt, beta-0.5*dt, nt)
+#    #t = np.linspace(0, beta, nt)
+#    plt.figure()
+#    plt.plot(t, g.data, ".", label = "G")
+#    plt.plot(times, g_ref, "-", label = "G (ref)")
+#    #times = np.linspace(0, beta, 101)
+#    #plt.plot(times, Δ(times), '-', label='Delta (ref)')
+#    #plt.plot(Δ.times, Δ.values, '.', label='Delta')
+#    plt.legend()
+#    plt.show()

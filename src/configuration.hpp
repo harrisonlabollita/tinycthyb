@@ -9,12 +9,11 @@ template <typename T>
 nda::vector<T> deleteat(nda::vector<T> old, int idx) {
     nda::vector<T> out = nda::zeros<T>(old.extent(0)-1);
     int k=0;
-    for (int i =0; i < old.extent(0); i++) {
+    for (int i =0; i < old.size(); i++) {
         if (i != idx) { 
-            out[k] = old[i]; 
+            out(k) = old(i); 
             k++;
         }
-
     }
     return out;
 }
@@ -65,23 +64,17 @@ struct Configuration {
 
 
     Configuration operator+(InsertMove& move) {
-        nda::vector<double> new_t_i = t_i;
-        nda::vector<double> new_t_f = t_f;
-        new_t_i = hstack(new_t_i, move.t_i);
-        new_t_f = hstack(new_t_f, move.t_f);
+        nda::vector<double> new_t_i = hstack(t_i, move.t_i);
+        nda::vector<double> new_t_f = hstack(t_f, move.t_f);
         return Configuration(new_t_i, new_t_f);
     }
 
     Configuration operator+(RemovalMove& move) {
         if (move.i_idx >= 0 && length() > 0) {
-            nda::vector<double> new_t_i = t_i;
-            nda::vector<double> new_t_f = t_f;
-            new_t_i = deleteat(new_t_i, move.i_idx);
-            new_t_f = deleteat(new_t_f, move.f_idx);
+            nda::vector<double> new_t_i = deleteat(t_i, move.i_idx);
+            nda::vector<double> new_t_f = deleteat(t_f, move.f_idx);
             return Configuration(new_t_i, new_t_f);
-        } else {
-            return *this;
-        }
+        } else { return *this; }
     }
 };
 

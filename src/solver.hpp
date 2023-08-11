@@ -29,16 +29,15 @@ struct Determinant {
         double value;
 
         Determinant( Configuration& c, Expansion& e){
-            t_i = c.t_i;
             t_f = c.t_f;
+            t_i = c.t_i;
 
-            if (t_f.size() > 0 && t_f(0) < t_i(0)) {
-                t_f = roll(t_f, -1);
-            }
+            if (t_f.size() > 0 && t_f(0) < t_i(0)) { t_f = roll(t_f, -1); }
+
             mat = nda::zeros<double>(t_i.size(), t_f.size());
             for (int i = 0; i < t_i.size(); i++) {
-                for (int f=0; f < t_f.size(); f++) {
-                    mat(f,i) = e.Delta(t_f(f)-t_i(i));
+                for (int j=0; j < t_f.size(); j++) {
+                    mat(j,i) = e.Delta(t_f(j)-t_i(i));
                 }
             }
             value = determinant(mat);
@@ -52,7 +51,7 @@ double trace(Configuration& c, Expansion& e) {
     double value = (c.t_f(0) < c.t_i(0)) ? -1.0 : +1.0;
 
     for (auto s : segments(c)) {
-        value *= std::exp(-1*e.h * s.length(e.beta));
+        value *= std::exp(-e.h * s.length(e.beta));
     }
     return value;
 }
@@ -71,7 +70,8 @@ InsertMove NewSegmentInsertionMove(Configuration& c, Expansion& e) {
         l   = e.beta;
     } else {
         auto s = onantisegment(t_i, c);
-        l = (s) ? Segment(t_i, (*s).t_f).length(e.beta) : 0.0;
+        if (s) { l = Segment(t_i, (*s).t_f).length(e.beta);
+        } else { l = 0.0; }
         t_f = fmod( (t_i + l * nda::rand<>() ), e.beta);
     }
     return InsertMove(t_i, t_f, l);
@@ -88,17 +88,18 @@ InsertMove NewAntiSegmentInsertionMove(Configuration& c, Expansion& e) {
         l = e.beta;
     } else {
         auto s = onsegment(t_i, c);
-        l = (s) ? AntiSegment(t_i, (*s).t_f).length(e.beta) : 0.0;
+        if (s) { l = AntiSegment(t_i, (*s).t_f).length(e.beta);
+        } else { l = 0.0; }
         t_f = fmod((t_i + l * nda::rand<>() ), e.beta);
     }
-    return InsertMove(t_i, t_f, l);
+    return InsertMove(t_f, t_i, l);
 }
 
 RemovalMove NewSegmentRemoveMove(Configuration& c, Expansion& e) {
     if (c.length() > 0) {
         auto idx = randomint(0, c.length()-1);
         auto [i_idx, f_idx] = segments(c).indices(idx);
-        auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length()) );
+        auto s = Segment(c.t_i(i_idx), c.t_i( (i_idx+1) % c.length() ) );
         auto l = s.length(e.beta);
         return RemovalMove(i_idx, f_idx, l);
     } else {
@@ -145,25 +146,23 @@ class Solver {
             auto M = inverse(d.mat);
             auto w = trace(c, e) * d.value;
             g.sign += sign(w);
-
             for (auto i = 0; i < c.length(); i++) {
                 for (auto j = 0; j < c.length(); j++) {
                     g.accumulate(d.t_f(i) - d.t_i(j), M(j,i));
                 }
             }
-
         }
 
         double propose(Configuration& c, InsertMove& move) {
             auto cnew = c + move;
-            double R = (move.l * e.beta / cnew.length()) * ( std::abs(eval(cnew, e) / eval(c, e) ) );
+            double R = move.l * e.beta / cnew.length() * ( std::abs(eval(cnew, e) / eval(c, e) ) );
             return R;
         }
 
         double propose(Configuration& c, RemovalMove& move) {
-            if (move.l == 0) { return std::numeric_limits<double>::quiet_NaN(); }
             auto cnew = c + move;
-            double R = (c.length() / e.beta / move.l) * (std::abs(eval(cnew, e) / eval(c, e) ));
+            if (move.l == 0) { return std::numeric_limits<double>::quiet_NaN(); }
+            double R = c.length() / e.beta / move.l * (std::abs(eval(cnew, e) / eval(c, e) ));
             return R;
         }
 
@@ -193,7 +192,7 @@ class Solver {
                 RemovalMove move = std::get<RemovalMove>(m);
                 move_prop(move_idx) += 1;
                 R =  propose(c, move);
-                if (!std::isnan(R) && R > nda::rand<>()) {
+                if (R > nda::rand<>()) {
                     c = finalize(c, move);
                     move_acc(move_idx) += 1;
                 }
