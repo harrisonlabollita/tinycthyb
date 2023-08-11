@@ -155,11 +155,6 @@ int main(){
     auto c = Configuration(nda::vector<double>{}, nda::vector<double>{});
     auto S = Solver(Delta, e, moves, nt) ;
     S.run(c);
-    std::cout << "g.sign = " << S.g.sign << std::endl;
-
-    double dt = beta / nt;
-    for (auto val : S.g.data ) { std::cout << val/(-S.g.sign*beta*dt) << std::endl; }
-
-
+    S.g.write_data("gmeasure.txt");
   return 0;
 }

@@ -42,6 +42,23 @@ class GreensFunction {
             auto idx = static_cast<int>(std::floor(length() * time / beta) );
             data(idx) += value;
         }
+
+        int write_data(std::string filename) {
+            std::ofstream outputFile(filename);
+            if (!outputFile.is_open() ) {
+                std::cerr << "Failed to open file!" << std::endl;
+                return 1;
+            }
+
+            double dt = beta / N;
+
+            for (auto val : data) {
+                outputFile << val / (-sign * beta * dt) << " ";
+            }
+            outputFile.close();
+            return 0;
+        }
+
 };
 
 GreensFunction read_semi_circular_g_tau(void) {
