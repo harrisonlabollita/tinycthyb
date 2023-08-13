@@ -1,13 +1,12 @@
-// Segment picture hybridization expansion
-// Author: H. LaBollita (2023)
-
-#include "configuration.hpp"
-#include "segment.hpp"
-#include "antisegment.hpp"
-#include "hybridization.hpp"
+//#include "configuration.hpp"
+//#include "segment.hpp"
+//#include "antisegment.hpp"
+//#include "hybridization.hpp"
 #include "green.hpp"
 #include "solver.hpp"
-#include "util.hpp"
+//#include "util.hpp"
+//
+using namespace tinycthyb;
 
 #define DEBUG false
 
@@ -25,7 +24,7 @@ int main(){
     auto e = Expansion(beta, h, Delta);
 
     
-
+//TODO: move to tests
 #if DEBUG
 
     for (auto i=0; i<100; i++) {
@@ -154,7 +153,7 @@ int main(){
                                     };
     auto c = Configuration(nda::vector<double>{}, nda::vector<double>{});
     auto S = Solver(Delta, e, moves, nt) ;
-    S.run(c);
+    S.solve(c);
     S.g.write_data("gmeasure.txt");
   return 0;
 }
