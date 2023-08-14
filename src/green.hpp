@@ -60,6 +60,13 @@ public:
   }
 };
 
+GreensFunction semi_circular_g_tau(double beta, size_t nt) {
+  auto data = nda::zeros<double>(nt);
+  double sign = 0.0;
+  //TODO: implment integration
+  return GreensFunction(beta, nt);
+}
+
 GreensFunction read_semi_circular_g_tau(void) {
 
   double beta = 20;
