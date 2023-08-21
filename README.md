@@ -15,4 +15,4 @@ To build the project (after installing the dependencies),
 5. ``make``
 
 ## Example
-![example](./doc/g_tau.pdf)
+![example](./doc/g_tau.png)
