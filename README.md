@@ -15,5 +15,5 @@ To build the project (after installing the dependencies),
 5. ``make``
 
 ## Example
-<p align="center"> <img src="doc/g_tau.png" alt="example" width="500"/></p>
+<p align="center"> <img src="doc/g_tau.png" alt="example" width="250"/></p>
 
