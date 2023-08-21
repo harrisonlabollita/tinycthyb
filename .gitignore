@@ -1,5 +1,4 @@
 *.swp
-*.jl
 build/
 __pycache__
 python

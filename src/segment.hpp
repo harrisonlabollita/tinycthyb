@@ -10,30 +10,20 @@ struct Segment {
   double t_i;
   double t_f;
 
-  Segment(double i, double f) {
-    t_i = i;
-    t_f = f;
-  }
+  Segment(double t_i, double t_f) : t_i(t_i), t_f(t_f) {}
 
   double length(double beta) {
-    if (t_i < t_f) {
-      return t_f - t_i;
-    } else {
-      return beta - t_i + t_f;
-    }
+      return (t_i < t_f) ? t_f - t_i : beta - t_i + t_f
   }
 
   bool onsegment(double t) {
-    if (t_i < t_f) {
-      return (t > t_i) && (t < t_f);
-    } else {
-      return (t < t_f) || (t > t_i);
-    }
+    return (t_i < t_f) ? t > t_i && (t < t_f) : (t < t_f) || (t > t_i);
   }
 
   void print() const {
     std::cout << "Segment(" << t_i << ", " << t_f << ")" << std::endl;
   }
+
 };
 
 class SegmentIterator {
