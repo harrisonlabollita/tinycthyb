@@ -13,7 +13,7 @@ struct Segment {
   Segment(double t_i, double t_f) : t_i(t_i), t_f(t_f) {}
 
   double length(double beta) {
-      return (t_i < t_f) ? t_f - t_i : beta - t_i + t_f
+      return (t_i < t_f) ? t_f - t_i : beta - t_i + t_f;
   }
 
   bool onsegment(double t) {
