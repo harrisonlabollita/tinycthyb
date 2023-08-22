@@ -43,7 +43,7 @@ public:
     data(idx) += value;
   }
 
-  int write_data(std::string filename) {
+  int write_data(std::string filename) const {
     std::ofstream outputFile(filename);
     if (!outputFile.is_open()) {
       std::cerr << "Failed to open file!" << std::endl;

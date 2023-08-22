@@ -3,7 +3,7 @@
 #include "nda/nda.hpp"
 #include <cmath>
 
-template <typename T> nda::vector<T> deleteat(nda::vector<T> old, int idx) {
+template <typename T> nda::vector<T> deleteat(const nda::vector<T> old, int idx) {
   nda::vector<T> out = nda::zeros<T>(old.extent(0) - 1);
   int k = 0;
   for (int i = 0; i < old.size(); i++) {
@@ -15,7 +15,7 @@ template <typename T> nda::vector<T> deleteat(nda::vector<T> old, int idx) {
   return out;
 }
 
-template <typename T> nda::vector<T> roll(nda::vector<T> &a, int shift) {
+template <typename T> nda::vector<T> roll(const nda::vector<T> &a, int shift) {
   auto N = a.size();
   auto A = nda::zeros<T>(N);
   for (int i = 0; i < N; i++) {
@@ -25,7 +25,7 @@ template <typename T> nda::vector<T> roll(nda::vector<T> &a, int shift) {
   return A;
 }
 
-template <typename T> nda::vector<T> hstack(nda::vector<T> &a, T &b) {
+template <typename T> nda::vector<T> hstack(const nda::vector<T> &a, T &b) {
   auto N = a.size();
   auto A = nda::zeros<T>(N + 1);
   for (auto i = 0; i < N; i++) {
@@ -36,7 +36,7 @@ template <typename T> nda::vector<T> hstack(nda::vector<T> &a, T &b) {
 }
 
 template <typename T>
-nda::vector<T> stack(nda::vector<T> &a, nda::vector<T> &b) {
+nda::vector<T> stack(const nda::vector<T> &a, nda::vector<T> &b) {
   auto N = a.size();
   auto M = b.size();
   auto A = nda::zeros<T>(N + M);
@@ -55,7 +55,6 @@ int randomint(int min, int max) {
   std::uniform_int_distribution<int> dis(min, max);
   return dis(gen);
 }
-
 template <typename T> int sign(T number) {
   return std::signbit(number) ? -1 : (number > 0 ? 1 : 0);
 }

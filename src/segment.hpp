@@ -12,11 +12,11 @@ struct Segment {
 
   Segment(double t_i, double t_f) : t_i(t_i), t_f(t_f) {}
 
-  double length(double beta) {
+  double length(double beta) const {
       return (t_i < t_f) ? t_f - t_i : beta - t_i + t_f;
   }
 
-  bool onsegment(double t) {
+  bool onsegment(double t) const {
     return (t_i < t_f) ? t > t_i && (t < t_f) : (t < t_f) || (t > t_i);
   }
 
@@ -32,7 +32,7 @@ public:
 
   int length() const { return c.length(); }
 
-  std::pair<int, int> indices(int idx) {
+  std::pair<int, int> indices(int idx) const {
     if (c.t_f[0] > c.t_i[0]) {
       return std::make_pair(idx, idx);
     } else {
@@ -40,12 +40,12 @@ public:
     }
   }
 
-  Segment getindex(int idx) {
+  Segment getindex(int idx) const {
     auto [i_idx, f_idx] = indices(idx);
     return Segment(c.t_i(i_idx), c.t_f(f_idx));
   }
 
-  SegmentIterator begin() { return *this; }
+  SegmentIterator begin() const { return *this; }
 
   SegmentIterator end() {
     SegmentIterator iter = *this;
@@ -64,7 +64,7 @@ public:
     return temp;
   }
 
-  Segment operator*() {
+  Segment operator*() const {
     int l = length();
     auto [i_idx, f_idx] = indices(_state);
     if (i_idx < l) {
@@ -100,7 +100,7 @@ void remove_segment(Configuration &c, int segment_idx) {
   c.t_f = deleteat(c.t_f, f_idx);
 }
 
-bool is_segment_proper(const Configuration &c) {
+bool is_segment_proper(Configuration &c) {
 
   if (c.t_i(0) < c.t_f(0)) {
     for (auto idx = 1; idx < c.length(); idx++) {
