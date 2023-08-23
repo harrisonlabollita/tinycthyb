@@ -18,23 +18,22 @@ struct RemovalMove {
   int i_idx;
   int f_idx;
   double l;
-  RemovalMove(int i_idx, int f_idx, double l)
-      : i_idx(i_idx), f_idx(f_idx), l(l) {}
+  RemovalMove(int i_idx, int f_idx, double l) : i_idx(i_idx), f_idx(f_idx), l(l) {}
 };
 
 struct Configuration {
   nda::vector<double> t_i;
   nda::vector<double> t_f;
 
-  Configuration(nda::vector<double> i, nda::vector<double> f) {
+  Configuration(nda::vector<double> t_i_, nda::vector<double> t_f_) {
     if (i.size() == 0) {
       t_i = nda::vector<double>{};
       t_f = nda::vector<double>{};
     }
-    std::sort(i.begin(), i.end());
-    std::sort(f.begin(), f.end());
-    t_i = i;
-    t_f = f;
+    std::sort(t_i_.begin(), t_i_.end());
+    std::sort(t_f_.begin(), t_f_.end());
+    t_i = t_i_;
+    t_f = t_f_;
   }
 
   // Assignment operator for copying
@@ -67,4 +66,5 @@ struct Configuration {
     }
   }
 };
+
 } // namespace tinycthyb

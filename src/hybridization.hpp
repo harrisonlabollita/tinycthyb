@@ -16,15 +16,13 @@ public:
       : times(times), values(values), beta(beta) {}
 
   double operator()(double t) {
-
     double s = 1.0;
     if (t < 0.0) {
       s = -1.0;
       t += beta;
     }
 
-    auto it =
-        std::lower_bound(times.begin(), times.end(), t); // iterator to element
+    auto it = std::lower_bound(times.begin(), times.end(), t); // iterator to element
     int idx = std::distance(times.begin(), it);
     idx = idx == 0 ? 1 : idx;
     double ti = times(idx - 1);
